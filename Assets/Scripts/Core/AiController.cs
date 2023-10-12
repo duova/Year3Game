@@ -2,7 +2,7 @@
 
 namespace Core
 {
-    public class PlayerController : Controller
+    public class AiController : Controller
     {
         
     }
