@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core;
+using Entity.Module;
 using Terrain;
 using UnityEngine;
 
@@ -20,6 +22,21 @@ namespace Entity
         private float maxHealth;
         
         public float Health { get; private set; }
+        
+        public ModuleSlot[] ModuleSlots { get; private set; }
+        
+        public List<Entity> OrderedEnemyList { get; private set; }
+
+        protected bool SimulationTicker;
+
+        protected virtual void Awake()
+        {
+            ModuleSlots = GetComponentsInChildren<ModuleSlot>();
+            foreach (var slot in ModuleSlots)
+            {
+                slot.Entity = this;
+            }
+        }
 
         public void SetHealth(float newHealth)
         {
@@ -66,5 +83,26 @@ namespace Entity
         public abstract void BeginSimulation();
 
         public abstract void EndSimulation();
+        
+        public bool IsInRange(Entity target, float range)
+        {
+            return (target.transform.position - transform.position).sqrMagnitude <
+                   range * range;
+        }
+
+        protected virtual void FixedUpdate()
+        {
+            //Only run on every other physics update to reduce lag from querying on tick.
+            SimulationTicker = !SimulationTicker;
+            
+            if (SimulationTicker) return;
+            
+            foreach (var actor in MatchManager.Instance.Actors)
+            {
+                if (actor == Actor) continue;
+                if (actor.Entities.Count == 0) continue;
+                OrderedEnemyList = actor.Entities.OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
+            }
+        }
     }
 }

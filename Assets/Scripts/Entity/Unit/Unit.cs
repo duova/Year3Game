@@ -28,29 +28,16 @@ namespace Entity.Unit
 
         public GameObject Target { get; private set; }
 
-        public ModuleSlot[] ModuleSlots { get; private set; }
-
         private NavMeshAgent _agent;
 
         private bool _inEnemyTerritory;
 
-        private bool _simulating;
-
         [SerializeField]
         private float engagementRange;
 
-        private bool _simulationTicker;
-
-        public List<Entity> OrderedEnemyList { get; private set; }
-
-        private void Awake()
+        protected override void Awake()
         {
-            ModuleSlots = GetComponentsInChildren<ModuleSlot>();
-            foreach (var slot in ModuleSlots)
-            {
-                slot.Unit = this;
-            }
-
+            base.Awake();
             if (!TryGetComponent(out _agent))
             {
                 throw new Exception("Unit does not have NavMeshAgent.");
@@ -68,8 +55,6 @@ namespace Entity.Unit
                 Target = null;
             }
 
-            _simulating = true;
-
             if (!MatchManager.Instance.ActiveUnits.Contains(this))
             {
                 MatchManager.Instance.ActiveUnits.Add(this);
@@ -79,17 +64,15 @@ namespace Entity.Unit
         public override void EndSimulation()
         {
             Target = null;
-            _simulating = false;
             Order = default;
         }
 
-        private void FixedUpdate()
+        protected override void FixedUpdate()
         {
-            //Only run on every other physics update to reduce lag from querying on tick.
-            _simulationTicker = !_simulationTicker;
+            base.FixedUpdate();
             
-            if (!_simulating || _simulationTicker) return;
-
+            if (SimulationTicker) return;
+            
             //Determine if closest spawn location is owned by the enemy.
             List<SpawnLocation> spawnLocations = new();
             foreach (var actor in MatchManager.Instance.Actors)
@@ -104,7 +87,6 @@ namespace Entity.Unit
             {
                 if (actor == Actor) continue;
                 if (actor.Entities.Count == 0) continue;
-                OrderedEnemyList = actor.Entities.OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
                 //Only engage if in engagement range or within enemy territory, in which case we need the unit to keep trying to engage.
                 if (_inEnemyTerritory || IsInEngagementRange(OrderedEnemyList[0]))
                 {
@@ -129,12 +111,6 @@ namespace Entity.Unit
         private bool IsInEngagementRange(Entity target)
         {
             return IsInRange(target, engagementRange);
-        }
-        
-        public bool IsInRange(Entity target, float range)
-        {
-            return (target.transform.position - transform.position).sqrMagnitude <
-                   range * range;
         }
 
         public override void Destroy()

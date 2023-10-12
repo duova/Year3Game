@@ -34,9 +34,9 @@ namespace Entity.Module
             
             if (_simulationTicker) return;
 
-            _target = Slot.Unit.OrderedEnemyList[0];
+            _target = Slot.Entity.OrderedEnemyList[0];
 
-            if (Slot.Unit.IsInRange(_target, engagementRange))
+            if (Slot.Entity.IsInRange(_target, engagementRange))
             {
                 _target.AddHealth(-damagePerSecond / 30f);
             }

@@ -15,7 +15,7 @@ namespace Entity.Module
     {
         public Module Module { get; private set; }
 
-        public Unit.Unit Unit { get; set; }
+        public Entity Entity { get; set; }
 
         public ModuleSlotType slotType;
 
