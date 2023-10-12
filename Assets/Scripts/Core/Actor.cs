@@ -57,6 +57,8 @@ namespace Core
             }
         }
 
+        #region Controller Callable Actions
+        
         public bool PurchaseEntity(GameObject prefab, SpawnLocation location)
         {
             if (!prefab || !location) return false;
@@ -112,6 +114,8 @@ namespace Core
             unit.Order = new UnitOrder { OrderType = orderType, Target = target };
             return true;
         }
+        
+        #endregion
 
         public void CheckIfLost()
         {
