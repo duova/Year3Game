@@ -99,6 +99,8 @@ namespace Core
                 foreach (var entity in actor.Entities)
                 {
                     entity.EndSimulation();
+                    //Heal all entities after simulation.
+                    entity.SetHealth(entity.MaxHealth);
                 }
             }
         }
