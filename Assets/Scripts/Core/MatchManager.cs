@@ -45,7 +45,7 @@ namespace Core
 
         private void Start()
         {
-            BeginStratergy();
+            BeginSimulation();
         }
 
         private void Update()

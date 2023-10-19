@@ -7,8 +7,10 @@ namespace Entity.Module
     public enum ModuleSlotType
     {
         Any,
-        SmallWeapon,
-        LargeWeapon
+        Small,
+        Medium,
+        Large,
+        Utility
     }
     
     public class ModuleSlot : MonoBehaviour

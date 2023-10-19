@@ -161,6 +161,7 @@ namespace Core
                 });
                 if (Random.Range(0f, 100f) > opponentGroupingRating)
                 {
+                    //Uninstall
                     Actor.InstallModule(
                         nonAoeSelection.OrderByDescending(module => module.GetComponent<Module>().InternalPowerRating)
                             .First(), slot);
