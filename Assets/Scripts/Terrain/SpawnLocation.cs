@@ -58,5 +58,10 @@ namespace Terrain
             Entity.transform.parent = null;
             Entity = null;
         }
+        
+        private void OnMouseUp()
+        {
+            PlayerController.Instance.MouseUp(this);
+        }
     }
 }

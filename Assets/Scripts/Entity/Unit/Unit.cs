@@ -20,6 +20,12 @@ namespace Entity.Unit
     {
         public OrderType OrderType;
         public GameObject Target;
+
+        public UnitOrder(OrderType orderType, GameObject target)
+        {
+            OrderType = orderType;
+            Target = target;
+        }
     }
     
     public class Unit : Entity

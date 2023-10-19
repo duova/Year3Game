@@ -25,6 +25,11 @@ namespace Entity.Module
             return new []{slotType};
         }
 
+        public override bool IsAreaOfEffectAttack()
+        {
+            return false;
+        }
+
         private void FixedUpdate()
         {
             if (MatchManager.Instance.MatchState != MatchState.Simulation) return;

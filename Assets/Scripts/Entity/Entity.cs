@@ -5,6 +5,7 @@ using Core;
 using Entity.Module;
 using Terrain;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Entity
 {
@@ -15,6 +16,8 @@ namespace Entity
         public SpawnLocation SpawnLocation { get; set; }
 
         public int price;
+        
+        public Sprite image;
 
         public float MaxHealth => maxHealth;
 
@@ -29,6 +32,16 @@ namespace Entity
 
         protected bool SimulationTicker;
 
+        public int InternalPowerRating => internalPowerRating;
+        
+        [SerializeField]
+        private int internalPowerRating;
+        
+        [SerializeField]
+        private GameObject healthBar;
+
+        private float _initialHealthBarXScale;
+
         protected virtual void Awake()
         {
             ModuleSlots = GetComponentsInChildren<ModuleSlot>();
@@ -36,6 +49,8 @@ namespace Entity
             {
                 slot.Entity = this;
             }
+            
+            _initialHealthBarXScale = healthBar.transform.localScale.x;
         }
 
         public void SetHealth(float newHealth)
@@ -103,6 +118,15 @@ namespace Entity
                 if (actor.Entities.Count == 0) continue;
                 OrderedEnemyList = actor.Entities.OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
             }
+
+            var healthLocalScale = healthBar.transform.localScale;
+            healthLocalScale = new Vector3(_initialHealthBarXScale * (Health / maxHealth), healthLocalScale.y, healthLocalScale.z);
+            healthBar.transform.localScale = healthLocalScale;
+        }
+
+        private void OnMouseUp()
+        {
+            PlayerController.Instance.MouseUp(this);
         }
     }
 }

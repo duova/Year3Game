@@ -101,6 +101,11 @@ namespace Core
                     entity.EndSimulation();
                     //Heal all entities after simulation.
                     entity.SetHealth(entity.MaxHealth);
+                    //Reset orders.
+                    if (entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit)))
+                    {
+                        ((Unit)entity).Order = default;
+                    }
                 }
             }
         }

@@ -20,9 +20,9 @@ namespace Core
         //Controllers are created by the game manager upon loading a scene.
         public Controller Controller { get; set; }
 
-        public List<SpawnLocation> SpawnLocations { get; private set; }
+        public List<SpawnLocation> SpawnLocations { get; private set; } = new();
 
-        public List<Entity.Entity> Entities { get; set; }
+        public List<Entity.Entity> Entities { get; set; } = new();
 
         public Side Side => side;
 
@@ -33,9 +33,11 @@ namespace Core
 
         public GameObject[] availableModulePrefabs;
 
-        public List<GameObject> PurchasedModulePrefabs { get; set; }
+        public GameObject[] availableEntityPrefabs;
+
+        public List<GameObject> PurchasedModulePrefabs { get; set; } = new();
         
-        public List<Objective> Objectives { get; set; }
+        public List<Objective> Objectives { get; set; } = new();
 
         [SerializeField]
         private SpawnLocation[] objectiveLocations;
