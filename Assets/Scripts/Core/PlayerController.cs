@@ -115,8 +115,6 @@ namespace Core
                 var yQuat = Quaternion.AngleAxis(_rotation.y, Vector3.left);
 
                 camTransform.rotation = xQuat * yQuat;
-                
-                print("asfjdkl");
             }
             else
             {

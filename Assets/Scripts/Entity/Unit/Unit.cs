@@ -41,6 +41,9 @@ namespace Entity.Unit
         [SerializeField]
         private float engagementRange;
 
+        [SerializeField]
+        private float rotateSpeed = 360;
+
         protected override void Awake()
         {
             base.Awake();
@@ -78,6 +81,8 @@ namespace Entity.Unit
             base.FixedUpdate();
             
             if (SimulationTicker) return;
+
+            if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
             
             //Determine if closest spawn location is owned by the enemy.
             List<SpawnLocation> spawnLocations = new();
@@ -105,6 +110,13 @@ namespace Entity.Unit
             }
 
             _agent.destination = Target ? Target.transform.position : transform.position;
+            
+            //Rotate towards target.
+            if (Target)
+            {
+                transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                    Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up), rotateSpeed / 30f);
+            }
 
             //Only allow the simulation phase to end if this unit is not in enemy territory and does not have a target.
             if (_inEnemyTerritory || Target) return;
