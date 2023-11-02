@@ -1,4 +1,5 @@
 ﻿using Core;
+using Entity.Unit;
 using UnityEditor;
 using UnityEngine;
 
@@ -59,9 +60,25 @@ namespace Terrain
             Entity = null;
         }
         
-        private void OnMouseUp()
+        private void OnMouseOver()
         {
-            PlayerController.Instance.MouseUp(this);
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (Entity)
+                {
+                    PlayerController.Instance.MouseDown(Entity);
+                }
+            }
+            
+            if (!Input.GetMouseButtonUp(0)) return;
+            if (!Entity)
+            {
+                PlayerController.Instance.MouseUp(this);
+            }
+            else
+            {
+                PlayerController.Instance.MouseUp(Entity);
+            }
         }
     }
 }

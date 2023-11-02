@@ -53,6 +53,11 @@ namespace Entity
             _initialHealthBarXScale = healthBar.transform.localScale.x;
         }
 
+        private void Start()
+        {
+            SetHealth(maxHealth);
+        }
+
         public void SetHealth(float newHealth)
         {
             if (newHealth > MaxHealth)
@@ -78,6 +83,7 @@ namespace Entity
             {
                 if (location.Entity) continue;
                 location.SetEntity(this);
+                return;
             }
             throw new Exception("No valid location to attach to.");
         }
@@ -122,11 +128,6 @@ namespace Entity
             var healthLocalScale = healthBar.transform.localScale;
             healthLocalScale = new Vector3(_initialHealthBarXScale * (Health / maxHealth), healthLocalScale.y, healthLocalScale.z);
             healthBar.transform.localScale = healthLocalScale;
-        }
-
-        private void OnMouseUp()
-        {
-            PlayerController.Instance.MouseUp(this);
         }
     }
 }

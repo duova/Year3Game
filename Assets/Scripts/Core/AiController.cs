@@ -47,8 +47,9 @@ namespace Core
 
         private float _idealGapSquared;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _idealGapSquared = idealGapBetweenEntitiesToAvoidBlocking * idealGapBetweenEntitiesToAvoidBlocking;
         }
 
@@ -68,7 +69,14 @@ namespace Core
             }
 
             var selfPower = selfEntities.SelectMany( entity => entity.ModuleSlots ).Select( slot => slot.Module.InternalPowerRating ).Sum() + selfEntities.Select( entity => entity.InternalPowerRating).Sum();
-            var opponentPower = opponentEntities.SelectMany( entity => entity.ModuleSlots ).Select( slot => slot.Module.InternalPowerRating ).Sum() + opponentEntities.Select( entity => entity.InternalPowerRating).Sum();
+            int opponentPower = 0;
+            if (opponentEntities.Count > 0)
+            {
+                opponentPower =
+                    opponentEntities.SelectMany(entity => entity.ModuleSlots)
+                        .Select(slot => slot.Module.InternalPowerRating).Sum() +
+                    opponentEntities.Select(entity => entity.InternalPowerRating).Sum();
+            }
 
             //Analyse opponent and self unit buildup.
             //Get opponent and self power weighted positional average.
@@ -196,7 +204,7 @@ namespace Core
                 
                 foreach (var entity in Actor.Entities.Where(entity => entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit))))
                 {
-                    ((Unit)entity).Order = new UnitOrder(OrderType.Move, target);
+                    entity.Actor.GiveOrder(OrderType.Move, target, (Unit)entity);
                 }
             }
 

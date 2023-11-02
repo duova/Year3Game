@@ -47,15 +47,15 @@ namespace Core
 
         private void Awake()
         {
-            foreach (var location in objectiveLocations)
-            {
-                Objectives.Add(location.SpawnEntity(objectivePrefab).GetComponent<Objective>());
-            }
             SpawnLocations = FindObjectsOfType<SpawnLocation>().ToList();
             SpawnLocations.RemoveAll(location => location.Side != Side);
             foreach (var location in SpawnLocations)
             {
                 location.Actor = this;
+            }
+            foreach (var location in objectiveLocations)
+            {
+                Objectives.Add(location.SpawnEntity(objectivePrefab).GetComponent<Objective>());
             }
         }
 
@@ -70,7 +70,11 @@ namespace Core
                 throw new Exception("Tried to purchase entity GameObject that doesn't have an entity component.");
             }
             if (prefabEntity.price > currency) return false;
-            if (prefabEntity.GetType() == typeof(Drill) && !location.Node) return false;
+            if (prefabEntity.GetType() == typeof(Drill) && !location.Node)
+            {
+                print("Drill can only be placed on a node.");
+                return false;
+            }
             if (!location.SpawnEntity(prefab)) return false;
             currency -= prefabEntity.price;
             return true;

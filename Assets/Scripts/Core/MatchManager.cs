@@ -45,7 +45,7 @@ namespace Core
 
         private void Start()
         {
-            BeginSimulation();
+            BeginStratergy();
         }
 
         private void Update()
@@ -61,7 +61,7 @@ namespace Core
             else
             {
                 //Only stop simulation if out of time or no more units are active.
-                if (RemainingStateTime >= 0 || ActiveUnits.Count > 0) return;
+                if (RemainingStateTime >= 0 && ActiveUnits.Count > 0) return;
                 EndSimulation();
                 BeginStratergy();
             }
@@ -94,6 +94,7 @@ namespace Core
 
         private void EndSimulation()
         {
+            ActiveUnits.Clear();
             foreach (var actor in Actors)
             {
                 foreach (var entity in actor.Entities)
@@ -101,11 +102,6 @@ namespace Core
                     entity.EndSimulation();
                     //Heal all entities after simulation.
                     entity.SetHealth(entity.MaxHealth);
-                    //Reset orders.
-                    if (entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit)))
-                    {
-                        ((Unit)entity).Order = default;
-                    }
                 }
             }
         }

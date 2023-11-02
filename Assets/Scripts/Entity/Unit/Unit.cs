@@ -16,6 +16,7 @@ namespace Entity.Unit
         Follow //Target should be a unit.
     }
     
+    [Serializable]
     public struct UnitOrder
     {
         public OrderType OrderType;
@@ -30,6 +31,7 @@ namespace Entity.Unit
     
     public class Unit : Entity
     {
+        [field: SerializeField]
         public UnitOrder Order { get; set; }
 
         public GameObject Target { get; private set; }
@@ -74,6 +76,7 @@ namespace Entity.Unit
         {
             Target = null;
             Order = default;
+            AttachToClosest();
         }
 
         protected override void FixedUpdate()
@@ -81,6 +84,8 @@ namespace Entity.Unit
             base.FixedUpdate();
             
             if (SimulationTicker) return;
+            
+            _agent.destination = Target ? Target.transform.position : transform.position;
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
             
@@ -103,13 +108,7 @@ namespace Entity.Unit
                 {
                     Target = OrderedEnemyList[0].gameObject;
                 }
-                else
-                {
-                    Target = null;
-                }
             }
-
-            _agent.destination = Target ? Target.transform.position : transform.position;
             
             //Rotate towards target.
             if (Target)

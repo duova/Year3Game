@@ -4,6 +4,7 @@ using Entity.Module;
 using Entity.Unit;
 using Terrain;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,7 @@ namespace Core
         [SerializeField]
         private float flySpeed;
 
+        [field: SerializeField]
         public GameObject Selected { get; set; }
 
         public GameObject SelectedImage { get; set; }
@@ -38,23 +40,51 @@ namespace Core
         private float sensitivity;
 
         private float _yRotLimit = 88f;
+
+        [SerializeField]
+        private Vector2 originalCameraV2Rotation;
         
         private Vector2 _rotation = Vector2.zero;
         private const string XAxis = "Mouse X";
         private const string YAxis = "Mouse Y";
 
-        private void Awake()
+        [SerializeField]
+        private ScrollCategory buildCategory;
+        
+        [SerializeField]
+        private ScrollCategory unitCategory;
+        
+        [SerializeField]
+        private ScrollCategory modCategory;
+
+        [SerializeField]
+        private GameObject canvas;
+
+        protected override void Awake()
         {
+            base.Awake();
             _camera = Camera.main;
             Instance = this;
-            _originalCameraPosition = _camera.transform.position;
-            _originalCameraRotation = _camera.transform.rotation;
+            var camTransform = _camera.transform;
+            if (camTransform != null)
+            {
+                _originalCameraPosition = camTransform.position;
+                _originalCameraRotation = camTransform.rotation;
+                _rotation = originalCameraV2Rotation;
+            }
+        }
+
+        protected void Start()
+        {
+            buildCategory.UpdateCategory(Actor.availableEntityPrefabs.Where(entity => !entity.TryGetComponent<Unit>(out _)).ToArray());
+            unitCategory.UpdateCategory(Actor.availableEntityPrefabs.Where(entity => entity.TryGetComponent<Unit>(out _)).ToArray());
+            modCategory.UpdateCategory(Actor.availableModulePrefabs);
         }
 
         private void FixedUpdate()
         {
             currency.text = "$" + Actor.currency;
-            timer.text = "Time remaining in phase: " + MatchManager.Instance.RemainingStateTime;
+            timer.text = "Time remaining in phase: " + (int)MatchManager.Instance.RemainingStateTime;
             phase.text = "Current phase: " + (MatchManager.Instance.MatchState == MatchState.Strategy
                 ? "Planning"
                 : "Combat");
@@ -70,19 +100,21 @@ namespace Core
         public void SelectObjectWithImage(GameObject go, Sprite image)
         {
             Selected = go;
-            SelectedImage = new GameObject();
-            SelectedImage.transform.eulerAngles = new Vector3(90, 0, 0);
-            SelectedImage.AddComponent<Image>().sprite = image;
-        }
-
-        public void SelectUnit(GameObject unit)
-        {
-            Selected = unit;
-            if (SelectedImage)
+            if (go.TryGetComponent(out Module module))
             {
-                Destroy(SelectedImage);
-                SelectedImage = null;
+                if (!Actor.PurchasedModulePrefabs.Contains(go))
+                {
+                    Actor.PurchaseModule(go);
+                    modCategory.UpdateCategory(Actor.availableModulePrefabs);
+                    return;
+                }
             }
+            SelectedImage = new GameObject();
+            SelectedImage.transform.parent = canvas.transform;
+            var imageComp = SelectedImage.AddComponent<Image>();
+            imageComp.sprite = image;
+            imageComp.color = new Color(imageComp.color.r, imageComp.color.g, imageComp.color.b, 0.5f);
+            imageComp.raycastTarget = false;
         }
 
         public void Ready()
@@ -92,15 +124,15 @@ namespace Core
 
         private void Update()
         {
+            var camTransform = _camera.transform;
             if (MatchManager.Instance.MatchState == MatchState.Simulation)
             {
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
-
-                var camTransform = _camera.transform;
-                var forward = camTransform.forward;
+                
                 var right = camTransform.right;
-                var up = camTransform.up;
+                var forward = -Vector3.Cross(right, Vector3.down);
+                var up = Vector3.up;
                 MoveInDirection(KeyCode.W, forward);
                 MoveInDirection(KeyCode.A, -right);
                 MoveInDirection(KeyCode.S, -forward);
@@ -120,11 +152,14 @@ namespace Core
             {
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
+                camTransform.rotation = _originalCameraRotation;
+                camTransform.position = _originalCameraPosition;
+                _rotation = originalCameraV2Rotation;
             }
             
             if (SelectedImage && _camera)
             {
-                SelectedImage.transform.position = _camera.ScreenToWorldPoint(Input.mousePosition);
+                SelectedImage.transform.position = Input.mousePosition;
             }
             
             if (_queueNextFrameSelectReset)
@@ -147,9 +182,9 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
-            if (Selected.TryGetComponent(out Unit unit))
+            if (Selected.TryGetComponent(out Unit unit) && !Actor.availableEntityPrefabs.Contains(Selected))
             {
-                unit.Order = new UnitOrder(OrderType.Follow, entity.gameObject);
+                Actor.GiveOrder(OrderType.Follow, entity.gameObject, unit);
             }
             if (Selected.TryGetComponent(out Module module))
             {
@@ -173,10 +208,19 @@ namespace Core
             }
             else
             {
-                if (Selected.TryGetComponent(out Unit unit))
+                if (Selected && Selected.TryGetComponent(out Unit unit))
                 {
-                    unit.Order = new UnitOrder(OrderType.Move, location.gameObject);
+                    Actor.GiveOrder(OrderType.Move, location.gameObject, unit);
                 }
+            }
+        }
+
+        public void MouseDown(Entity.Entity entity)
+        {
+            if (Actor.availableEntityPrefabs.Contains(entity.gameObject)) return;
+            if (entity.TryGetComponent<Unit>(out _))
+            {
+                Selected = entity.gameObject;
             }
         }
 
