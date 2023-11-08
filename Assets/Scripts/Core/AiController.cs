@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Entity.Module;
 using Entity.Structure;
 using Entity.Unit;
 using Terrain;
-using UnityEditor.UI;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using Vector3 = UnityEngine.Vector3;
@@ -118,23 +116,21 @@ namespace Core
                     {
                         if (Actor.PurchasedModulePrefabs.Contains(prefab)) continue;
                         if (prefab.GetComponent<Module>().price > Actor.currency) continue;
-                        Actor.PurchaseModule(prefab);
-                        boughtSomething = true;
+                        boughtSomething = Actor.PurchaseModule(prefab);
                         break;
                     }
 
                     //If we still have currency after buying module, build up units around center of power, with a min distance being the minimum + factor based on percentage of aoe attacks.
                     var availableEntities = Actor.availableEntityPrefabs.ToList();
-                    availableEntities.RemoveAll(entity => entity.GetType() == typeof(Drill));
+                    availableEntities.RemoveAll(entity => entity.TryGetComponent<Drill>(out _));
                     while (availableEntities.Count > 0)
                     {
                         var entityToBuy = availableEntities[Random.Range(0, availableEntities.Count)];
                         if (entityToBuy.GetComponent<Entity.Entity>().price <= Actor.currency)
                         {
-                            Actor.PurchaseEntity(entityToBuy,
+                            boughtSomething = Actor.PurchaseEntity(entityToBuy,
                                 GetClosestEmptyOwnedSpawnLocation(selfPowerWeightedAveragePosition,
                                     _idealGapSquared + Mathf.Pow(antiAoeDistanceFactor * opponentAoePercentage, 2)));
-                            boughtSomething = true;
                             break;
                         }
                         availableEntities.Remove(entityToBuy);
@@ -147,8 +143,9 @@ namespace Core
                         (location.transform.position - selfPowerWeightedAveragePosition).sqrMagnitude);
                     var drillPrefab = Actor.availableEntityPrefabs.First(prefab => prefab.TryGetComponent<Drill>(out _));
                     if (drillPrefab.GetComponent<Drill>().price <= Actor.currency)
-                        Actor.PurchaseEntity(drillPrefab, sortedEmptyNodeLocations.First());
-                    boughtSomething = true;
+                    {
+                        boughtSomething = Actor.PurchaseEntity(drillPrefab, sortedEmptyNodeLocations.First());
+                    }
                 }
 
                 if (!boughtSomething) break;

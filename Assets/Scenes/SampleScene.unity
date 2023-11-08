@@ -2228,7 +2228,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 577311748}
   m_HandleRect: {fileID: 577311747}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -27609,8 +27609,8 @@ MonoBehaviour:
   actors:
   - {fileID: 2123088718}
   - {fileID: 1137139037}
-  maxStratergyTime: 30
-  maxSimulationTime: 30
+  maxStratergyTime: 60
+  maxSimulationTime: 45
 --- !u!4 &1766681708
 Transform:
   m_ObjectHideFlags: 0
@@ -32476,6 +32476,7 @@ MonoBehaviour:
   timer: {fileID: 612225536}
   phase: {fileID: 1058633162}
   flySpeed: 10
+  <Selected>k__BackingField: {fileID: 0}
   sensitivity: 4
   originalCameraV2Rotation: {x: 0, y: -72}
   buildCategory: {fileID: 1679095069}

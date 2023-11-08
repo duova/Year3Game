@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Entity.Structure;
 using Entity.Unit;
 using Terrain;
 using UnityEngine;
@@ -101,7 +102,10 @@ namespace Core
                 {
                     entity.EndSimulation();
                     //Heal all entities after simulation.
-                    entity.SetHealth(entity.MaxHealth);
+                    if (entity.GetType() != typeof(Objective))
+                    {
+                        entity.SetHealth(entity.MaxHealth);
+                    }
                 }
             }
         }

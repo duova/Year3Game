@@ -81,6 +81,7 @@ namespace Entity
             var orderedLocations = Actor.SpawnLocations.OrderBy(location => (location.transform.position - transform.position).sqrMagnitude);
             foreach (var location in orderedLocations)
             {
+                if (location.Entity == this) return;
                 if (location.Entity) continue;
                 location.SetEntity(this);
                 return;

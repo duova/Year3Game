@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 292599062230381853}
   - component: {fileID: 629691372709347629}
   - component: {fileID: 2689512783775006155}
+  - component: {fileID: 4587669185693699486}
   m_Layer: 0
   m_Name: DefaultUnit
   m_TagString: Untagged
@@ -104,6 +105,9 @@ MonoBehaviour:
   maxHealth: 10
   internalPowerRating: 1
   healthBar: {fileID: 2056316295046057796}
+  <Order>k__BackingField:
+    OrderType: 0
+    Target: {fileID: 0}
   engagementRange: 5
   rotateSpeed: 360
 --- !u!195 &2689512783775006155
@@ -128,6 +132,20 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &4587669185693699486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1691015488602342855}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d75789012d304574bd549e7314821e05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  homeMaterial: {fileID: 2100000, guid: 92cc1a6fb3a330c42874769fb21d6273, type: 2}
+  awayMaterial: {fileID: 2100000, guid: f99d186d5dc52a94fa21b429f78c1d8c, type: 2}
 --- !u!1 &6059953306674833825
 GameObject:
   m_ObjectHideFlags: 0
