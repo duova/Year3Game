@@ -6,6 +6,7 @@ using Entity.Structure;
 using Entity.Unit;
 using Terrain;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 using Vector3 = UnityEngine.Vector3;
 
@@ -66,13 +67,13 @@ namespace Core
                 opponentEntities.AddRange(opponent.Entities);
             }
 
-            var selfPower = selfEntities.SelectMany( entity => entity.ModuleSlots ).Select( slot => slot.Module.InternalPowerRating ).Sum() + selfEntities.Select( entity => entity.InternalPowerRating).Sum();
+            var selfPower = selfEntities.SelectMany( entity => entity.ModuleSlots ).Where(slot => slot.Module).Select( slot => slot.Module.InternalPowerRating ).Sum() + selfEntities.Select( entity => entity.InternalPowerRating).Sum();
             int opponentPower = 0;
             if (opponentEntities.Count > 0)
             {
                 opponentPower =
                     opponentEntities.SelectMany(entity => entity.ModuleSlots)
-                        .Select(slot => slot.Module.InternalPowerRating).Sum() +
+                        .Where(slot => slot.Module).Select(slot => slot.Module.InternalPowerRating).Sum() +
                     opponentEntities.Select(entity => entity.InternalPowerRating).Sum();
             }
 
@@ -81,7 +82,7 @@ namespace Core
             var selfPowerWeightedAveragePosition = PowerWeightedAveragePosition(selfEntities);
             var opponentPowerWeightedAveragePosition = PowerWeightedAveragePosition(opponentEntities);
             //Calculate AoE percentage and grouping rating.
-            var opponentModuleAoeIndicators = opponentEntities.SelectMany(entity => entity.ModuleSlots)
+            var opponentModuleAoeIndicators = opponentEntities.SelectMany(entity => entity.ModuleSlots).Where(slot => slot.Module)
                 .Select(slot => slot.Module.IsAreaOfEffectAttack()).ToArray();
             var opponentAoePercentage = (float)opponentModuleAoeIndicators.Count(indicator => indicator) /
                                         opponentModuleAoeIndicators.Length;
@@ -225,7 +226,7 @@ namespace Core
             foreach (var entity in entities)
             {
                 var power = entity.InternalPowerRating +
-                            entity.ModuleSlots.Select(slot => slot.Module.InternalPowerRating).Sum();
+                            entity.ModuleSlots.Where(slot =>slot.Module).Select(slot => slot.Module.InternalPowerRating).Sum();
                 denominator += power;
                 vectorSum += entity.transform.position * power;
             }

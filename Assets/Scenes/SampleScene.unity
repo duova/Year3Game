@@ -27609,7 +27609,8 @@ MonoBehaviour:
   actors:
   - {fileID: 2123088718}
   - {fileID: 1137139037}
-  maxStratergyTime: 60
+  <ActiveUnits>k__BackingField: []
+  maxStratergyTime: 20
   maxSimulationTime: 45
 --- !u!4 &1766681708
 Transform:

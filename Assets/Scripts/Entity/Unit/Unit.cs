@@ -110,6 +110,9 @@ namespace Entity.Unit
                 }
             }
             
+            if (Target && Target.TryGetComponent<SpawnLocation>(out _) && Math.Abs(Target.transform.position.x - transform.position.x) < 0.1f &&
+                Math.Abs(Target.transform.position.y - transform.position.y) < 0.1) Target = null;
+            
             //Rotate towards target.
             if (Target)
             {
@@ -117,8 +120,8 @@ namespace Entity.Unit
                     Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up), rotateSpeed / 30f);
             }
 
-            //Only allow the simulation phase to end if this unit is not in enemy territory and does not have a target.
-            if (_inEnemyTerritory || Target) return;
+            //Only allow the simulation phase to end if this unit is not in enemy territory and does not have a target, or has a follow order.
+            if ((_inEnemyTerritory || Target) && Order.OrderType != OrderType.Follow) return;
             if (MatchManager.Instance.ActiveUnits.Contains(this))
             {
                 MatchManager.Instance.ActiveUnits.Remove(this);
