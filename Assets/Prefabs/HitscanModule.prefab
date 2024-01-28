@@ -50,7 +50,7 @@ MonoBehaviour:
   price: 10
   internalPowerRating: 1
   slotType: 1
-  damagePerSecond: 1
+  damagePerSecond: 5
   engagementRange: 3
 --- !u!33 &1315507307666941722
 MeshFilter:

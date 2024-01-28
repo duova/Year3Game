@@ -182,6 +182,7 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
+            if (!Selected) return;
             if (Selected.TryGetComponent(out Unit unit) && !Actor.availableEntityPrefabs.Contains(Selected))
             {
                 Actor.GiveOrder(OrderType.Follow, entity.gameObject, unit);

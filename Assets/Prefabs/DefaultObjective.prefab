@@ -151,6 +151,8 @@ MonoBehaviour:
   maxHealth: 50
   internalPowerRating: 0
   healthBar: {fileID: 2569277046649814669}
+  damagePerSecond: 10
+  engagementRange: 5
 --- !u!1001 &3438212753310101928
 PrefabInstance:
   m_ObjectHideFlags: 0

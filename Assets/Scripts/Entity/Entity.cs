@@ -27,8 +27,8 @@ namespace Entity
         public float Health { get; private set; }
         
         public ModuleSlot[] ModuleSlots { get; private set; }
-        
-        public List<Entity> OrderedEnemyList { get; private set; }
+
+        public List<Entity> OrderedEnemyList { get; private set; } = new();
 
         protected bool SimulationTicker;
 
@@ -108,6 +108,7 @@ namespace Entity
         
         public bool IsInRange(Entity target, float range)
         {
+            if (!target) return false;
             return (target.transform.position - transform.position).sqrMagnitude <
                    range * range;
         }

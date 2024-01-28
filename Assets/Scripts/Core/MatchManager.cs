@@ -25,7 +25,7 @@ namespace Core
         public MatchState MatchState { get; private set; }
 
         public float RemainingStateTime { get; private set; }
-
+        
         public List<Unit> ActiveUnits { get; set; } = new();
 
         [SerializeField]
