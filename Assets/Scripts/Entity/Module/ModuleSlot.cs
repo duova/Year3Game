@@ -7,9 +7,9 @@ namespace Entity.Module
     public enum ModuleSlotType
     {
         Any,
-        Small,
+        Light,
         Medium,
-        Large,
+        Heavy,
         Utility
     }
     

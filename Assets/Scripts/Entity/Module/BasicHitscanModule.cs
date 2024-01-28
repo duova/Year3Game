@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Entity.Module
 {
-    public class HitscanModule : Module
+    public class BasicHitscanModule : Module
     {
         [SerializeField]
         private ModuleSlotType slotType;
