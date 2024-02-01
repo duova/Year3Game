@@ -72,6 +72,21 @@ namespace Entity
 
         public void AddHealth(float healthChange)
         {
+            if (healthChange < 0)
+            {
+                //Check for aura.
+                var orderedAllyList = Actor.Entities.OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
+                foreach (var ally in orderedAllyList.Where(ally => ally != this))
+                {
+                    if (!ally.ModuleSlots.FirstOrDefault(slot => slot.Module != null
+                                                      && slot.Module is AuraModule auraModule
+                                                      && (ally.transform.position - transform.position).sqrMagnitude <
+                                                      auraModule.rangeSquared)) continue;
+                    //Reduce damage.
+                    healthChange *= 1 - AuraModule.DamageReduction;
+                    break;
+                }
+            }
             SetHealth(Health + healthChange);
         }
 

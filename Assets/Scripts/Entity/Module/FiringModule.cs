@@ -33,12 +33,29 @@ namespace Entity.Module
 
         [SerializeField]
         private bool isAoE;
+
+        //0 for infinite.
+        [SerializeField]
+        private int burstsPerRound;
+
+        [SerializeField]
+        private float firstShotChargeTime;
+
+        //Each burst reduces time between burst by this.
+        [SerializeField]
+        private float timeBetweenBurstReduction;
+
+        //Cannot get lower than this.
+        [SerializeField]
+        private float minTimeBetweenBurst;
         
         private bool _simulationTicker;
 
         private Entity _target;
         
         private float _burstCooldown;
+
+        private float _currentTimeBetweenBurst;
 
         private float _intervalCooldown;
 
@@ -62,7 +79,14 @@ namespace Entity.Module
 
         private void FixedUpdate()
         {
-            if (MatchManager.Instance.MatchState != MatchState.Simulation) return;
+            if (MatchManager.Instance.MatchState != MatchState.Simulation)
+            {
+                //Set burst cooldown for the next round to the original.
+                _currentTimeBetweenBurst = timeBetweenBurst;
+                //Use cooldown as first shot charge time.
+                _burstCooldown = firstShotChargeTime;
+                return;
+            }
             
             //Only run on every other physics update to reduce lag from querying on tick.
             _simulationTicker = !_simulationTicker;
@@ -73,8 +97,8 @@ namespace Entity.Module
 
             if (_target != null)
             {
-                //Rotate to point at target with parabolic arc.
-                rotatedObject.transform.rotation = Quaternion.LookRotation(ArcUtility.ArcToTarget(transform.position, _target.transform.position), Vector3.up);
+                //Rotate to point at target.
+                
             }
 
             if (Slot.Entity.IsInRange(_target, engagementRange) && _burstCooldown < 0f)
@@ -88,11 +112,21 @@ namespace Entity.Module
                     _shotsRemainingInBurst--;
                     var proj = Instantiate(shotPrefab, shotOriginTransformMarkers[^_shotsRemainingInBurst].transform);
                     proj.transform.parent = null;
+                    if (proj.TryGetComponent<IShot>(out var shot))
+                        throw new Exception("Fired prefab doesn't have shot component.");
+                    //Provide info.
+                    shot.Origin = Slot.Entity;
+                    shot.Target = _target;
+                    //Reset charge interval.
                     _intervalCooldown = burstInterval;
                 }
                 
+                //Reduce burst cooldown.
+                _currentTimeBetweenBurst = MathF.Max(_currentTimeBetweenBurst - timeBetweenBurstReduction,
+                    minTimeBetweenBurst);
+                
                 //Set cooldown with added time for the burst.
-                _burstCooldown = timeBetweenBurst + (shotOriginTransformMarkers.Length - 1) * burstInterval;
+                _burstCooldown = _currentTimeBetweenBurst + (shotOriginTransformMarkers.Length - 1) * burstInterval;
             }
         }
     }
