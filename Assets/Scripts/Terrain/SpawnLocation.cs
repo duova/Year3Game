@@ -1,5 +1,6 @@
 ﻿using Core;
 using Entity.Unit;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace Terrain
 {
     public class SpawnLocation : MonoBehaviour
     {
+        [field: SerializeField]
         public Entity.Entity Entity { get; private set; }
         
         public Side Side => side;
@@ -46,15 +48,15 @@ namespace Terrain
             Entity = entity;
             var entityTransform = entity.transform;
             entityTransform.parent = transform;
-            entityTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            entity.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             Entity.Actor = Actor;
             Entity.SpawnLocation = this;
             return true;
         }
 
-        public void DetachEntity(Entity.Entity entity)
+        public void DetachEntity()
         {
-            if (Entity) return;
+            if (!Entity) return;
             Entity.SpawnLocation = null;
             Entity.transform.parent = null;
             Entity = null;

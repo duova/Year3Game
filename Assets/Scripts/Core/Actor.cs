@@ -112,12 +112,17 @@ namespace Core
             MatchManager.Instance.ReadyActors.Add(this);
         }
 
-        public bool GiveOrder(OrderType orderType, GameObject target, Unit unit)
+        public bool GiveOrder(OrderType orderType, GameObject target, Unit unit, bool drawLine)
         {
             if (!unit || !target) return false;
             if (orderType == OrderType.Move && !target.TryGetComponent<SpawnLocation>(out _)) return false;
-            if (orderType == OrderType.Follow && !target.TryGetComponent<Unit>(out _)) return false;
+            if (orderType == OrderType.Follow && !target.TryGetComponent<Entity.Entity>(out _)) return false;
             unit.Order = new UnitOrder { OrderType = orderType, Target = target };
+            if (drawLine)
+            {
+                unit.LineRenderer.positionCount = 2;
+                unit.LineRenderer.SetPositions(new[] { unit.transform.position, target.transform.position });
+            }
             return true;
         }
         
@@ -127,7 +132,7 @@ namespace Core
         {
             if (Objectives.Count == 0)
             {
-                print(Side == Side.Home ? "Away wins." : "Home wins.");
+                MatchManager.Instance.EndGame(Side != Side.Home);
             }
         }
     }

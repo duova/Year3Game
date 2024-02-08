@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Entity.Structure
 {
+    [RequireComponent(typeof(LineRenderer))]
     public class Objective : Entity
     {
         public override void BeginSimulation()
@@ -32,8 +33,20 @@ namespace Entity.Structure
 
         private Entity _target;
 
+        private LineRenderer _lineRenderer;
+        
+        protected override void Start()
+        {
+            base.Start();
+            _lineRenderer = GetComponent<LineRenderer>();
+        }
+
         protected override void FixedUpdate()
         {
+            base.FixedUpdate();
+            
+            _lineRenderer.positionCount = 0;
+            
             if (MatchManager.Instance.MatchState != MatchState.Simulation) return;
             
             //Only run on every other physics update to reduce lag from querying on tick.
@@ -46,6 +59,8 @@ namespace Entity.Structure
             if (!IsInRange(_target, engagementRange)) return;
             if (!_target) return;
             _target.AddHealth(-damagePerSecond / 30f);
+            _lineRenderer.positionCount = 2;
+            _lineRenderer.SetPositions(new []{transform.position, _target.transform.position});
         }
     }
 }

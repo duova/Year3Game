@@ -13,11 +13,15 @@ namespace Entity
     {
         public Actor Actor { get; set; }
 
+        [field: SerializeField]
         public SpawnLocation SpawnLocation { get; set; }
 
         public int price;
         
         public Sprite image;
+
+        [TextArea(15,20)]
+        public string text;
 
         public float MaxHealth => maxHealth;
 
@@ -53,7 +57,7 @@ namespace Entity
             _initialHealthBarXScale = healthBar.transform.localScale.x;
         }
 
-        private void Start()
+        protected virtual void Start()
         {
             SetHealth(maxHealth);
         }
@@ -96,8 +100,14 @@ namespace Entity
             var orderedLocations = Actor.SpawnLocations.OrderBy(location => (location.transform.position - transform.position).sqrMagnitude);
             foreach (var location in orderedLocations)
             {
-                if (location.Entity == this) return;
+                //Simply reset if the tile is the one it was on last turn.
+                if (location.Entity == this)
+                {
+                    transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                    return;
+                }
                 if (location.Entity) continue;
+                Detach();
                 location.SetEntity(this);
                 return;
             }
@@ -107,7 +117,7 @@ namespace Entity
         public void Detach()
         {
             if (!SpawnLocation) return;
-            SpawnLocation.DetachEntity(this);
+            SpawnLocation.DetachEntity();
         }
 
         public virtual void Destroy()

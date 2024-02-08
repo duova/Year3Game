@@ -92,6 +92,7 @@ namespace Core
             //Calculate direct attack vector.
             var attackVector = (opponentPowerWeightedAveragePosition - selfPowerWeightedAveragePosition).normalized;
 
+            /*
             //Locate a weak structure target accounting for distance from defenses and distance from our entities.
             var weakTarget = opponentEntities.Where( entity => !entity.GetType().IsSubclassOf(typeof(Unit)) && entity.GetType() != typeof(Unit)).OrderByDescending(entity =>
             {
@@ -99,6 +100,7 @@ namespace Core
                 return ((position = entity.transform.position) - opponentPowerWeightedAveragePosition).sqrMagnitude * 3 -
                        (position - selfPowerWeightedAveragePosition).sqrMagnitude;
             }).FirstOrDefault();
+            */
             
             while (true)
             {
@@ -186,23 +188,27 @@ namespace Core
             //Confront enemy unit group if confident, attack exposed objectives/buildings otherwise.
             if (doAttack)
             {
-                GameObject target;
-                if (selfPower - opponentPower > powerLevelDiffToBeConfidentAtDirectConfrontation.Get())
+                Entity.Entity target;
+                /*
+                if (selfPower - opponentPower >= powerLevelDiffToBeConfidentAtDirectConfrontation.Get())
                 {
+                */
                     //Direct confrontation.
                     target = opponentEntities.OrderBy(opponentEntity =>
                             (opponentEntity.transform.position - opponentPowerWeightedAveragePosition).sqrMagnitude)
-                        .First().gameObject;
+                        .First();
+                    /*
                 }
                 else
                 {
                     //Picking off structures.
                     target = weakTarget.gameObject;
                 }
+                */
                 
                 foreach (var entity in Actor.Entities.Where(entity => entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit))))
                 {
-                    entity.Actor.GiveOrder(OrderType.Move, target, (Unit)entity);
+                    entity.Actor.GiveOrder(OrderType.Move, target.SpawnLocation.gameObject, (Unit)entity, false);
                 }
             }
 

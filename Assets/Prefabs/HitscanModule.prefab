@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8533071648132580015
 MonoBehaviour:
@@ -49,6 +49,7 @@ MonoBehaviour:
   image: {fileID: 21300000, guid: 92b204cca46037444ab18ba6701f86f7, type: 3}
   price: 10
   internalPowerRating: 1
+  weight: 0
   slotType: 1
   damagePerSecond: 5
   engagementRange: 3
@@ -80,7 +81,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 25c652cf6c6e9f04388374a57ab62278, type: 2}
+  - {fileID: 2100000, guid: 31b50c3ca84213c49aab38c6c0bbc92d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

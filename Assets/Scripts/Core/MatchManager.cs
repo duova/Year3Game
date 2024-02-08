@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Entity.Structure;
 using Entity.Unit;
 using Terrain;
+using TMPro;
 using UnityEngine;
 
 namespace Core
@@ -35,6 +36,9 @@ namespace Core
         private float maxSimulationTime;
 
         private int _numActorsTotal;
+
+        [SerializeField]
+        private TMP_Text endText;
 
         public List<Actor> ReadyActors { get; set; } = new();
 
@@ -108,6 +112,11 @@ namespace Core
                     }
                 }
             }
+        }
+
+        public void EndGame(bool won)
+        {
+            endText.text = won ? "WIN" : "LOSE";
         }
     }
 }

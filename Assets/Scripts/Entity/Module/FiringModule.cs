@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Core;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Entity.Module
 {
@@ -48,6 +47,9 @@ namespace Entity.Module
         //Cannot get lower than this.
         [SerializeField]
         private float minTimeBetweenBurst;
+
+        [SerializeField]
+        private float rotationRate;
         
         private bool _simulationTicker;
 
@@ -60,6 +62,8 @@ namespace Entity.Module
         private float _intervalCooldown;
 
         private int _shotsRemainingInBurst;
+
+        private int _burstsRemaining;
         
         public override IEnumerable<ModuleSlotType> GetModuleTypes()
         {
@@ -85,6 +89,8 @@ namespace Entity.Module
                 _currentTimeBetweenBurst = timeBetweenBurst;
                 //Use cooldown as first shot charge time.
                 _burstCooldown = firstShotChargeTime;
+
+                _burstsRemaining = burstsPerRound;
                 return;
             }
             
@@ -95,31 +101,20 @@ namespace Entity.Module
 
             _target = Slot.Entity.OrderedEnemyList[0];
 
-            if (_target != null)
-            {
-                //Rotate to point at target.
-                
-            }
+            if (_target == null) return;
+            //Rotate to point at target.
+            var cachedTransform = transform;
+            cachedTransform.rotation = Quaternion.RotateTowards(cachedTransform.rotation,
+                    Quaternion.LookRotation(_target.transform.position - cachedTransform.position, Vector3.up),
+                    rotationRate * Time.deltaTime);
 
+            //Don't shoot if no more bursts remain.
+            if (_burstsRemaining <= 0 && burstsPerRound > 0) return;
+            
             if (Slot.Entity.IsInRange(_target, engagementRange) && _burstCooldown < 0f)
             {
                 //Gain charges.
                 _shotsRemainingInBurst = shotOriginTransformMarkers.Length;
-                //Fire burst.
-                if (_shotsRemainingInBurst > 0 && _intervalCooldown < 0f)
-                {
-                    //Fire charge.
-                    _shotsRemainingInBurst--;
-                    var proj = Instantiate(shotPrefab, shotOriginTransformMarkers[^_shotsRemainingInBurst].transform);
-                    proj.transform.parent = null;
-                    if (proj.TryGetComponent<IShot>(out var shot))
-                        throw new Exception("Fired prefab doesn't have shot component.");
-                    //Provide info.
-                    shot.Origin = Slot.Entity;
-                    shot.Target = _target;
-                    //Reset charge interval.
-                    _intervalCooldown = burstInterval;
-                }
                 
                 //Reduce burst cooldown.
                 _currentTimeBetweenBurst = MathF.Max(_currentTimeBetweenBurst - timeBetweenBurstReduction,
@@ -127,6 +122,25 @@ namespace Entity.Module
                 
                 //Set cooldown with added time for the burst.
                 _burstCooldown = _currentTimeBetweenBurst + (shotOriginTransformMarkers.Length - 1) * burstInterval;
+                
+                //Remove burst from round.
+                _burstsRemaining--;
+            }
+            
+            //Fire charges that we have gained from loading a burst.
+            if (_shotsRemainingInBurst > 0 && _intervalCooldown < 0f)
+            {
+                //Fire charge.
+                var proj = Instantiate(shotPrefab, shotOriginTransformMarkers[^_shotsRemainingInBurst].transform);
+                proj.transform.parent = null;
+                if (!proj.TryGetComponent<IShot>(out var shot))
+                    throw new Exception("Fired prefab doesn't have shot component.");
+                //Provide info.
+                shot.Origin = Slot.Entity;
+                shot.Target = _target;
+                //Reset charge interval.
+                _intervalCooldown = burstInterval;
+                _shotsRemainingInBurst--;
             }
         }
     }

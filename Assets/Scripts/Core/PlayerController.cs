@@ -60,6 +60,8 @@ namespace Core
         [SerializeField]
         private GameObject canvas;
 
+        private LineRenderer _selectedUnitLineRenderer;
+
         protected override void Awake()
         {
             base.Awake();
@@ -83,9 +85,25 @@ namespace Core
 
         private void FixedUpdate()
         {
+            if (_selectedUnitLineRenderer != null && Selected != null)
+            {
+                var cameraRay = _camera.ScreenPointToRay(Input.mousePosition);
+                var xzPlane = new Plane(Vector3.up, Vector3.zero);
+                xzPlane.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out float hitDistance);
+                var point = cameraRay.GetPoint(hitDistance);
+                _selectedUnitLineRenderer.SetPositions(new []{Selected.transform.position, point});
+            }
+            
             currency.text = "$" + Actor.currency;
-            timer.text = "Time remaining in phase: " + (int)MatchManager.Instance.RemainingStateTime;
-            phase.text = "Current phase: " + (MatchManager.Instance.MatchState == MatchState.Strategy
+            if (currency.color != Color.white)
+            {
+                var color = currency.color;
+                color.g = currency.color.g + 0.02f;
+                color.b = currency.color.b + 0.02f;
+                currency.color = color;
+            }
+            timer.text = "Time: " + (int)MatchManager.Instance.RemainingStateTime;
+            phase.text = "Phase: " + (MatchManager.Instance.MatchState == MatchState.Strategy
                 ? "Planning"
                 : "Combat");
 
@@ -104,7 +122,10 @@ namespace Core
             {
                 if (!Actor.PurchasedModulePrefabs.Contains(go))
                 {
-                    Actor.PurchaseModule(go);
+                    if (!Actor.PurchaseModule(go))
+                    {
+                        currency.color = Color.red;
+                    }
                     modCategory.UpdateCategory(Actor.availableModulePrefabs);
                     return;
                 }
@@ -127,6 +148,8 @@ namespace Core
             var camTransform = _camera.transform;
             if (MatchManager.Instance.MatchState == MatchState.Simulation)
             {
+                ClearMouseState();
+                
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
                 
@@ -176,6 +199,11 @@ namespace Core
             
             if (Input.GetKeyUp(KeyCode.Mouse0))
             {
+                if (_selectedUnitLineRenderer)
+                {
+                    _selectedUnitLineRenderer.positionCount = 0;
+                    _selectedUnitLineRenderer = null;
+                }
                 _queueNextFrameSelectReset = true;
             }
         }
@@ -185,7 +213,15 @@ namespace Core
             if (!Selected) return;
             if (Selected.TryGetComponent(out Unit unit) && !Actor.availableEntityPrefabs.Contains(Selected))
             {
-                Actor.GiveOrder(OrderType.Follow, entity.gameObject, unit);
+                if (Selected == entity.gameObject)
+                {
+                    //If clicking on itself it should go back to stay.
+                    Actor.GiveOrder(OrderType.Stay, null, unit, true);
+                }
+                else
+                {
+                    Actor.GiveOrder(OrderType.Follow, entity.gameObject, unit, true);
+                }
             }
             if (Selected.TryGetComponent(out Module module))
             {
@@ -193,27 +229,36 @@ namespace Core
                 {
                     if (module.GetModuleTypes().Contains(slot.slotType))
                     {
-                        slot.UninstallModule();
+                        if (slot.Module != null) continue;
                         slot.InstallModule(module.gameObject);
                         return;
                     }
                 }
             }
+            
+            Selected = null;
+            _selectedUnitLineRenderer = null;
         }
 
         public void MouseUp(SpawnLocation location)
         {
             if (Actor.availableEntityPrefabs.Contains(Selected))
             {
-                Actor.PurchaseEntity(Selected, location);
+                if (!Actor.PurchaseEntity(Selected, location))
+                {
+                    currency.color = Color.red;
+                }
             }
             else
             {
                 if (Selected && Selected.TryGetComponent(out Unit unit))
                 {
-                    Actor.GiveOrder(OrderType.Move, location.gameObject, unit);
+                    Actor.GiveOrder(OrderType.Move, location.gameObject, unit, true);
                 }
             }
+
+            Selected = null;
+            _selectedUnitLineRenderer = null;
         }
 
         public void MouseDown(Entity.Entity entity)
@@ -222,6 +267,8 @@ namespace Core
             if (entity.TryGetComponent<Unit>(out _))
             {
                 Selected = entity.gameObject;
+                _selectedUnitLineRenderer = entity.gameObject.GetComponent<LineRenderer>();
+                _selectedUnitLineRenderer.positionCount = 2;
             }
         }
 
@@ -231,6 +278,16 @@ namespace Core
             {
                 _camera.transform.position += direction * (flySpeed * Time.deltaTime);
             }
+        }
+
+        private void ClearMouseState()
+        {
+            if (_selectedUnitLineRenderer != null)
+            {
+                _selectedUnitLineRenderer.positionCount = 0;
+            }
+            _selectedUnitLineRenderer = null;
+            Selected = null;
         }
     }
 }

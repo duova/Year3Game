@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Entity.Module;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
 namespace UI
@@ -11,9 +13,7 @@ namespace UI
     public class ScrollCategory : MonoBehaviour
     {
         [SerializeField]
-        private float offset;
-
-        private float _currentOffset = 0;
+        private GameObject scrollButtonPrefab;
 
         public Dictionary<PointerDownButton, GameObject> ButtonGameObjectRefPair { get; private set; } = new();
 
@@ -24,32 +24,34 @@ namespace UI
                 if (go == gameObject) continue;
                 Destroy(go);
             }
-
-            _currentOffset = 0;
+            
             ButtonGameObjectRefPair.Clear();
 
             foreach (var go in gameObjects)
             {
                 bool isEntity = false;
                 Sprite image = null;
+                string text = null;
                 if (go.TryGetComponent(out Entity.Entity entity))
                 {
                     image = entity.image;
+                    text = entity.text;
                     isEntity = true;
                 }
                 if (go.TryGetComponent(out Module module))
                 {
                     image = module.image;
+                    text = module.text;
                     isEntity = false;
                 }
 
-                var newGo = new GameObject();
-                newGo.transform.parent = transform;
-                var imageComp = newGo.AddComponent<Image>();
+                var newGo = Instantiate(scrollButtonPrefab, transform);
+                var textComp = newGo.GetComponentInChildren<TMP_Text>();
+                textComp.text = text;
+                var imageComp = newGo.GetComponent<Image>();
                 imageComp.sprite = image;
-                var buttonComp = newGo.AddComponent<PointerDownButton>();
+                var buttonComp = newGo.GetComponent<PointerDownButton>();
                 buttonComp.OnDown += OnClicked;
-                newGo.transform.localPosition = new Vector3(0, _currentOffset, 0);
                 if (!isEntity && !PlayerController.Instance.Actor.PurchasedModulePrefabs.Contains(go))
                 {
                     imageComp.color = new Color(imageComp.color.r, imageComp.color.g, imageComp.color.b, 0.5f);

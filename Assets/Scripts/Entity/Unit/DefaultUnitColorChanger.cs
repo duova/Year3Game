@@ -14,23 +14,26 @@ namespace Entity.Unit
 
         private Unit _unit;
 
-        private MeshRenderer _renderer;
+        private MeshRenderer[] _renderers;
 
         private void Start()
         {
-            _unit = GetComponent<Unit>();
-            _renderer = GetComponent<MeshRenderer>();
+            _unit = transform.parent.GetComponent<Unit>();
+            _renderers = GetComponentsInChildren<MeshRenderer>();
         }
 
         private void Update()
         {
-            if (_unit.Actor.Side == Side.Home)
+            foreach (var rdr in _renderers)
             {
-                _renderer.material = homeMaterial;
-            }
-            else
-            {
-                _renderer.material = awayMaterial;
+                if (_unit.Actor.Side == Side.Home)
+                {
+                    rdr.material = homeMaterial;
+                }
+                else
+                {
+                    rdr.material = awayMaterial;
+                }
             }
         }
     }

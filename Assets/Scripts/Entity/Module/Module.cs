@@ -9,6 +9,9 @@ namespace Entity.Module
     {
         public Sprite image;
         
+        [TextArea(15,20)]
+        public string text;
+        
         public abstract IEnumerable<ModuleSlotType> GetModuleTypes();
         
         public abstract bool IsAreaOfEffectAttack();
@@ -21,5 +24,8 @@ namespace Entity.Module
         
         [SerializeField]
         private int internalPowerRating;
+
+        [SerializeField]
+        public int weight;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.VFX;
 
 namespace Entity.Module
@@ -21,23 +22,42 @@ namespace Entity.Module
         private float lifesteal;
 
         [SerializeField]
-        private float duration;
+        private float velocity;
+
+        private float _travelTime;
 
         private void Start()
         {
+            if (velocity == 0) velocity = 1;
+
+            transform.rotation = Quaternion.LookRotation(Target.transform.position - transform.position);
+            
             var distance = (Target.transform.position - transform.position).magnitude;
 
-            var eventAttribute = shotVfx.CreateVFXEventAttribute();
-            eventAttribute.SetFloat("distance", distance);
+            var distanceAttribute = shotVfx.CreateVFXEventAttribute();
+            distanceAttribute.SetFloat("distance", distance);
+            
+            var velocityAttribute = shotVfx.CreateVFXEventAttribute();
+            velocityAttribute.SetFloat("velocity", velocity);
+
+            _travelTime = distance / velocity;
         }
 
         private void Update()
         {
-            duration -= Time.deltaTime;
-            if (duration < 0)
+            _travelTime -= Time.deltaTime;
+            if (_travelTime < 0)
             {
-                Target.AddHealth(-damage);
-                Origin.AddHealth(damage * lifesteal);
+                if (Target)
+                {
+                    Target.AddHealth(-damage);
+                }
+
+                if (Origin)
+                {
+                    Origin.AddHealth(damage * lifesteal);
+                }
+
                 Destroy(gameObject);
             }
         }

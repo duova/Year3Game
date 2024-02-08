@@ -29,6 +29,7 @@ namespace Entity.Unit
         }
     }
     
+    [RequireComponent(typeof(LineRenderer))]
     public class Unit : Entity
     {
         [field: SerializeField]
@@ -46,6 +47,11 @@ namespace Entity.Unit
         [SerializeField]
         private float rotateSpeed = 360;
 
+        private float _originalSpeed;
+
+        [HideInInspector]
+        public LineRenderer LineRenderer;
+
         protected override void Awake()
         {
             base.Awake();
@@ -53,10 +59,16 @@ namespace Entity.Unit
             {
                 throw new Exception("Unit does not have NavMeshAgent.");
             }
+
+            _originalSpeed = _agent.speed;
+
+            LineRenderer = GetComponent<LineRenderer>();
         }
 
         public override void BeginSimulation()
         {
+            LineRenderer.positionCount = 0;
+            
             if (Order.OrderType is OrderType.Move or OrderType.Follow)
             {
                 Target = Order.Target;
@@ -69,6 +81,13 @@ namespace Entity.Unit
             if (!MatchManager.Instance.ActiveUnits.Contains(this))
             {
                 MatchManager.Instance.ActiveUnits.Add(this);
+            }
+            
+            _agent.speed = _originalSpeed;
+            foreach (var slot in ModuleSlots)
+            {
+                if (slot.Module == null) continue;
+                _agent.speed -= slot.Module.weight;
             }
         }
 
@@ -88,6 +107,15 @@ namespace Entity.Unit
             _agent.destination = Target ? Target.transform.position : transform.position;
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
+
+            //If the unit regains a target, we want to add it to the list again.
+            if (Target)
+            {
+                if (!MatchManager.Instance.ActiveUnits.Contains(this))
+                {
+                    MatchManager.Instance.ActiveUnits.Add(this);
+                }
+            }
             
             //Determine if closest spawn location is owned by the enemy.
             List<SpawnLocation> spawnLocations = new();
@@ -110,8 +138,8 @@ namespace Entity.Unit
                 }
             }
             
-            if (Target && Target.TryGetComponent<SpawnLocation>(out _) && Math.Abs(Target.transform.position.x - transform.position.x) < 0.1f &&
-                Math.Abs(Target.transform.position.y - transform.position.y) < 0.1) Target = null;
+            //Clear target if it is a spawn location and the unit has arrived.
+            if (Target && Target.TryGetComponent<SpawnLocation>(out _) && (Target.transform.position - transform.position).sqrMagnitude <= 0.5f * 0.5f) Target = null;
             
             //Rotate towards target.
             if (Target)
@@ -119,9 +147,23 @@ namespace Entity.Unit
                 transform.rotation = Quaternion.RotateTowards(transform.rotation,
                     Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up), rotateSpeed / 30f);
             }
-
-            //Only allow the simulation phase to end if this unit is not in enemy territory and does not have a target, or has a follow order.
-            if ((_inEnemyTerritory || Target) && Order.OrderType != OrderType.Follow) return;
+            
+            //Always in combat if in enemy territory.
+            if (_inEnemyTerritory) return;
+            //If target isn't null we have to check if it can still path.
+            if (Target != null)
+            {
+                //Move orders can generally always reach.
+                if (Order.OrderType == OrderType.Move) return;
+                if (!Target.TryGetComponent(out Entity targetEntity)) return;
+                //If we're following an enemy we want to continue.
+                if (targetEntity.Actor != Actor) return;
+                //We only want to follow allies that are still active.
+                if (MatchManager.Instance.ActiveUnits.Contains(targetEntity)) return;
+                //Or are really far away.
+                if ((Target.transform.position - transform.position).sqrMagnitude > 1f * 1f) return;
+            }
+            //Remove it from the active list.
             if (MatchManager.Instance.ActiveUnits.Contains(this))
             {
                 MatchManager.Instance.ActiveUnits.Remove(this);
