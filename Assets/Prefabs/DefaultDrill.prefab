@@ -237,18 +237,21 @@ MonoBehaviour:
   text: '-Drill-
 
 
-    Provides $20 every round.
+    Immobile structure that
 
-    You don''t get income
+    provides $20 every round.
 
-    without
-    active drills!
+    You
+    don''t get income
+
+    without active drills!
 
 
     Cost: $10'
   maxHealth: 200
   internalPowerRating: 0
   healthBar: {fileID: 1611171977449919991}
+  moduleArrowPrefab: {fileID: 0}
 --- !u!135 &580860087927381288
 SphereCollider:
   m_ObjectHideFlags: 0

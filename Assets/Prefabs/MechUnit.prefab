@@ -57,13 +57,24 @@ MonoBehaviour:
   text: '-Mech-
 
 
+    Agile unit.
+
+    Units can move to a
+
+    selected location
+    and
+
+    can carry modules.
+
+
     Cost: $10
 
     Health: 220
 
     Modules: 2
 
-    Speed: 2'
+    Speed:
+    2'
   maxHealth: 220
   internalPowerRating: 1
   healthBar: {fileID: 2056316295046057796}

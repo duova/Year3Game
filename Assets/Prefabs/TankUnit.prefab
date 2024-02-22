@@ -103,11 +103,22 @@ MonoBehaviour:
   text: '-Tank-
 
 
+    Fortified artillary unit.
+
+    Units can move to a
+
+    selected
+    location and
+
+    can carry modules.
+
+
     Cost: $20
 
     Health: 340
 
-    Modules: 3
+    Modules:
+    3
 
     Speed: 1'
   maxHealth: 340

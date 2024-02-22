@@ -92,7 +92,7 @@ MonoBehaviour:
   - {fileID: 1384111985300072653}
   burstInterval: 0.2
   timeBetweenBurst: 1
-  engagementRange: 8
+  engagementRange: 6
   shotPrefab: {fileID: 5590046249696654570, guid: 02f9646238c423349af94af30fe2ef44,
     type: 3}
   rotatedObject: {fileID: 3808010842214016744}

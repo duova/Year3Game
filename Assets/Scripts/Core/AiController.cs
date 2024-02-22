@@ -106,8 +106,6 @@ namespace Core
             {
                 var boughtSomething = false;
                 
-                print("cycle");
-                
                 //Build resource structure prioritizing nodes close to center of power.
                 var sortedEmptyNodeLocations = selfSpawnLocations.Where(location => location.Node && !location.Entity).OrderBy(location =>
                     (location.transform.position - selfPowerWeightedAveragePosition).sqrMagnitude);
@@ -178,7 +176,10 @@ namespace Core
 
             //Attack if unit power sum is above a certain threshold (range randomized to offer different levels of aggression).
             var doAttack = selfPower > powerThresholdForAttack.Get();
-            
+
+            //Override for now.
+            doAttack = true;
+
             //Confront enemy unit group if confident, attack exposed objectives/buildings otherwise.
             if (doAttack)
             {
@@ -199,6 +200,7 @@ namespace Core
                 target = weakTarget.gameObject;
             }
             */
+
                 if (target != null)
                 {
                     foreach (var entity in Actor.Entities.Where(entity =>

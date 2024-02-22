@@ -138,6 +138,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shotVfx: {fileID: 7835295875605775256}
-  damage: 25
+  damage: 10
   lifesteal: 0
   velocity: 20

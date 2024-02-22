@@ -1,6 +1,8 @@
 ﻿using System;
 using Core;
+using Terrain;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace UI
 {
@@ -38,7 +40,10 @@ namespace UI
         {
             if (SpawnMenu.Instance.SpawnLocation != null) return;
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
-            displayObject.SetActive(true);
+            if (GetComponent<SpawnLocation>().Actor == PlayerController.Instance.Actor || PlayerController.Instance.Selected != null)
+            {
+                displayObject.SetActive(true);
+            }
         }
 
         private void OnMouseExit()
