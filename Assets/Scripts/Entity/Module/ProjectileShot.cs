@@ -52,14 +52,14 @@ namespace Entity.Module
              * v = vv / sin(angle)
              */
             var horizontalDistance = horizontalVector.magnitude;
-            var verticalVelocity = Mathf.Sqrt(vRatio * horizontalDistance * -Physics.gravity.y / 2f);
+            var verticalVelocity = Mathf.Sqrt(Mathf.Max(vRatio * horizontalDistance * -Physics.gravity.y / 2f, 0f));
             var sinAngle = Mathf.Sin(angle * Mathf.PI / 180);
             if (sinAngle == 0f) throw new Exception("Projectile cannot hit targets if shot directly sideways.");
             var velocity = verticalVelocity / sinAngle;
             
             //Apply.
             _rb.AddForce(transform.forward * velocity, ForceMode.VelocityChange);
-            
+
             //Destroy if not hit anything.
             Destroy(gameObject, 15f);
         }
@@ -85,7 +85,6 @@ namespace Entity.Module
                 if (!hitObject.TryGetComponent(out Entity entity)) continue;
                 if (entity.Actor == Origin.Actor) continue;
                 entity.AddHealth(-damage);
-                print("hit enemy");
             }
             
             //Play effect.

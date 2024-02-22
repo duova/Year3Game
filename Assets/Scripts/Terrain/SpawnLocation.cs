@@ -1,4 +1,5 @@
-﻿using Core;
+﻿using System;
+using Core;
 using Entity.Unit;
 using Unity.Mathematics;
 using UnityEditor;
@@ -22,6 +23,14 @@ namespace Terrain
 
         [SerializeField]
         private Node node;
+
+        [SerializeField]
+        private GameObject drillArrow;
+
+        private SpriteRenderer _arrowRenderer;
+
+        [SerializeField]
+        private float drillCost = 10;
 
         //Returns whether the spawn was successful.
         public GameObject SpawnEntity(GameObject prefab)
@@ -66,21 +75,68 @@ namespace Terrain
         {
             if (Input.GetMouseButtonDown(0))
             {
-                if (Entity)
+                if (!Entity)
+                {
+                    PlayerController.Instance.MouseDown(this);
+                }
+                else
                 {
                     PlayerController.Instance.MouseDown(Entity);
                 }
             }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                if (!Entity)
+                {
+                    PlayerController.Instance.MouseUp(this);
+                }
+                else
+                {
+                    PlayerController.Instance.MouseUp(Entity);
+                }
+            }
             
-            if (!Input.GetMouseButtonUp(0)) return;
-            if (!Entity)
+            if (Input.GetMouseButtonDown(1))
             {
-                PlayerController.Instance.MouseUp(this);
+                if (!Entity)
+                {
+                    PlayerController.Instance.RightMouseDown(this);
+                }
+                else
+                {
+                    PlayerController.Instance.RightMouseDown(Entity);
+                }
             }
-            else
+
+            if (Input.GetMouseButtonUp(1))
             {
-                PlayerController.Instance.MouseUp(Entity);
+                if (!Entity)
+                {
+                    PlayerController.Instance.RightMouseUp(this);
+                }
+                else
+                {
+                    PlayerController.Instance.RightMouseUp(Entity);
+                }
             }
+        }
+
+        private void Start()
+        {
+            if (!drillArrow) return;
+            _arrowRenderer = drillArrow.GetComponent<SpriteRenderer>();
+        }
+
+        private void Update()
+        {
+            if (!drillArrow) return;
+            _arrowRenderer.enabled = false;
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
+            if (!node) return;
+            if (Entity) return;
+            if (PlayerController.Instance.Actor.Currency < drillCost) return;
+            _arrowRenderer.enabled = true;
         }
     }
 }

@@ -5,6 +5,7 @@ using Entity.Module;
 using Entity.Structure;
 using Entity.Unit;
 using Terrain;
+using UI;
 using UnityEngine;
 
 namespace Core
@@ -28,8 +29,22 @@ namespace Core
 
         [SerializeField]
         private Side side;
-        
-        public int currency;
+
+        [SerializeField]
+        private int currency;
+
+        public int Currency
+        {
+            get => currency;
+            set
+            {
+                if (PlayerController.Instance.Actor == this && value < currency)
+                {
+                    DeductCurrencyText.Instance.Deduct(currency - value);
+                }
+                currency = value;
+            }
+        }
 
         public GameObject[] availableModulePrefabs;
 
@@ -69,14 +84,14 @@ namespace Core
             {
                 throw new Exception("Tried to purchase entity GameObject that doesn't have an entity component.");
             }
-            if (prefabEntity.price > currency) return false;
+            if (prefabEntity.price > Currency) return false;
             if (prefabEntity.GetType() == typeof(Drill) && !location.Node)
             {
                 print("Drill can only be placed on a node.");
                 return false;
             }
             if (!location.SpawnEntity(prefab)) return false;
-            currency -= prefabEntity.price;
+            Currency -= prefabEntity.price;
             return true;
         }
 
@@ -87,11 +102,11 @@ namespace Core
             {
                 throw new Exception("Tried to purchase module GameObject that doesn't have a module component.");
             }
-            if (module.price > currency) return false;
+            if (module.price > Currency) return false;
             if (!availableModulePrefabs.Contains(modulePrefab)) return false;
             if (PurchasedModulePrefabs.Contains(modulePrefab)) return false;
             PurchasedModulePrefabs.Add(modulePrefab);
-            currency -= module.price;
+            Currency -= module.price;
             return true;
         }
 

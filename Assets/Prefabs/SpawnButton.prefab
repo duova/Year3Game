@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7615437586720730655}
   - component: {fileID: 6234980043038997148}
   m_Layer: 5
-  m_Name: ScrollButton
+  m_Name: SpawnButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

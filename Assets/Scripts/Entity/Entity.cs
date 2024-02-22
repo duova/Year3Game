@@ -46,6 +46,11 @@ namespace Entity
 
         private float _initialHealthBarXScale;
 
+        [SerializeField]
+        private GameObject moduleArrowPrefab;
+
+        private GameObject moduleArrow;
+
         protected virtual void Awake()
         {
             ModuleSlots = GetComponentsInChildren<ModuleSlot>();
@@ -155,6 +160,34 @@ namespace Entity
             var healthLocalScale = healthBar.transform.localScale;
             healthLocalScale = new Vector3(_initialHealthBarXScale * (Health / maxHealth), healthLocalScale.y, healthLocalScale.z);
             healthBar.transform.localScale = healthLocalScale;
+
+            if (moduleArrowPrefab != null && Actor == PlayerController.Instance.Actor)
+            {
+                if (MatchManager.Instance.MatchState == MatchState.Simulation)
+                {
+                    if (moduleArrow != null)
+                    {
+                        Destroy(moduleArrow);
+                    }
+                }
+                else
+                {
+                    if (moduleArrow != null)
+                    {
+                        if (ModuleSlots.All(slot => slot.Module != null))
+                        {
+                            Destroy(moduleArrow);
+                        }
+                    }
+                    else
+                    {
+                        if (ModuleSlots.Any(slot => slot.Module == null))
+                        {
+                            moduleArrow = Instantiate(moduleArrowPrefab, transform);
+                        }
+                    }
+                }
+            }
         }
     }
 }

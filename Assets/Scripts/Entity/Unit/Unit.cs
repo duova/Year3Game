@@ -51,6 +51,11 @@ namespace Entity.Unit
 
         [HideInInspector]
         public LineRenderer LineRenderer;
+        
+        [SerializeField]
+        private GameObject rightClickPrefab;
+
+        private GameObject rightClick;
 
         protected override void Awake()
         {
@@ -105,6 +110,34 @@ namespace Entity.Unit
             if (SimulationTicker) return;
             
             _agent.destination = Target ? Target.transform.position : transform.position;
+            
+            if (rightClickPrefab != null && Actor == PlayerController.Instance.Actor)
+            {
+                if (MatchManager.Instance.MatchState == MatchState.Simulation)
+                {
+                    if (rightClick != null)
+                    {
+                        Destroy(rightClick);
+                    }
+                }
+                else
+                {
+                    if (rightClick != null)
+                    {
+                        if (Order.Target != null)
+                        {
+                            Destroy(rightClick);
+                        }
+                    }
+                    else
+                    {
+                        if (Order.Target == null && ModuleSlots.All(slot => slot.Module != null))
+                        {
+                            rightClick = Instantiate(rightClickPrefab, transform);
+                        }
+                    }
+                }
+            }
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
 
@@ -126,21 +159,6 @@ namespace Entity.Unit
             var orderedLocations = spawnLocations.OrderBy(location => (location.transform.position - transform.position).sqrMagnitude).ToArray();
             _inEnemyTerritory = orderedLocations[0].Actor != Actor;
             
-            //Targeting.
-            foreach (var actor in MatchManager.Instance.Actors)
-            {
-                if (actor == Actor) continue;
-                if (actor.Entities.Count == 0) continue;
-                //Only engage if in engagement range or within enemy territory, in which case we need the unit to keep trying to engage.
-                if (_inEnemyTerritory || IsInEngagementRange(OrderedEnemyList[0]))
-                {
-                    Target = OrderedEnemyList[0].gameObject;
-                }
-            }
-            
-            //Clear target if it is a spawn location and the unit has arrived.
-            if (Target && Target.TryGetComponent<SpawnLocation>(out _) && (Target.transform.position - transform.position).sqrMagnitude <= 0.5f * 0.5f) Target = null;
-            
             //Rotate towards target.
             if (Target)
             {
@@ -148,20 +166,33 @@ namespace Entity.Unit
                     Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up), rotateSpeed / 30f);
             }
             
-            //Always in combat if in enemy territory.
-            if (_inEnemyTerritory) return;
+            //Clear target if it is a spawn location owned by the enemy and the unit has arrived.
+            if (Target && Target.TryGetComponent<SpawnLocation>(out var spawnLocation) && spawnLocation.Actor != Actor && (Target.transform.position - transform.position).sqrMagnitude <= 2f * 2f) Target = null;
+            
+            //Only retarget if the unit is stuck in enemy territory and has no existing target.
+            if (_inEnemyTerritory && !Target)
+            {
+                foreach (var actor in MatchManager.Instance.Actors)
+                {
+                    if (actor == Actor) continue;
+                    if (actor.Entities.Count == 0) continue;
+                    Target = OrderedEnemyList[0].gameObject;
+                }
+            }
+
             //If target isn't null we have to check if it can still path.
             if (Target != null)
             {
-                //Move orders can generally always reach.
-                if (Order.OrderType == OrderType.Move) return;
-                if (!Target.TryGetComponent(out Entity targetEntity)) return;
-                //If we're following an enemy we want to continue.
-                if (targetEntity.Actor != Actor) return;
-                //We only want to follow allies that are still active.
-                if (MatchManager.Instance.ActiveUnits.Contains(targetEntity)) return;
+                if (Target.TryGetComponent(out Entity targetEntity))
+                {
+                    //If we're following an enemy we want to continue.
+                    if (targetEntity.Actor != Actor) return;
+                    //We only want to follow allies that are still active.
+                    if (MatchManager.Instance.ActiveUnits.Contains(targetEntity)) return;
+                }
+
                 //Or are really far away.
-                if ((Target.transform.position - transform.position).sqrMagnitude > 1f * 1f) return;
+                if ((Target.transform.position - transform.position).sqrMagnitude > 2f * 2f) return;
             }
             //Remove it from the active list.
             if (MatchManager.Instance.ActiveUnits.Contains(this))

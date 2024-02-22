@@ -9,6 +9,18 @@ namespace UI
         [SerializeField]
         private GameObject displayObject;
 
+        [SerializeField] private bool _override;
+
+        public bool Override
+        {
+            get => _override;
+            set
+            {
+                _override = value;
+                displayObject.SetActive(value);
+            }
+        }
+
         private void Start()
         {
             displayObject.SetActive(false);
@@ -24,6 +36,7 @@ namespace UI
 
         private void OnMouseEnter()
         {
+            if (SpawnMenu.Instance.SpawnLocation != null) return;
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
             displayObject.SetActive(true);
         }
@@ -31,6 +44,7 @@ namespace UI
         private void OnMouseExit()
         {
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
+            if (_override) return;
             displayObject.SetActive(false);
         }
     }

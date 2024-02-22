@@ -79,11 +79,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   image: {fileID: 21300000, guid: 8641c914baa248146955ea9bf3e86de3, type: 3}
-  text: 'Grenade
+  text: '-Grenade Launcher-
 
-    Launcher
 
-    $20'
+    Cost: $20'
   price: 20
   internalPowerRating: 1
   weight: 0

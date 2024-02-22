@@ -5,20 +5,28 @@ using Core;
 using Entity.Module;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
 namespace UI
 {
-    public class ScrollCategory : MonoBehaviour
+    public class MenuLoader : MonoBehaviour
     {
         [SerializeField]
-        private GameObject scrollButtonPrefab;
+        private GameObject buttonPrefab;
 
-        public Dictionary<PointerDownButton, GameObject> ButtonGameObjectRefPair { get; private set; } = new();
+        [SerializeField]
+        public HoverText hoverText;
+
+        private GameObject[] _currentObjects;
+
+        public Dictionary<AddedEventsButton, GameObject> ButtonGameObjectRefPair { get; private set; } = new();
 
         public void UpdateCategory(GameObject[] gameObjects)
         {
+            _currentObjects = gameObjects;
+            
             foreach (var go in GetComponentsInChildren<Transform>().Select(t => t.gameObject))
             {
                 if (go == gameObject) continue;
@@ -45,13 +53,15 @@ namespace UI
                     isEntity = false;
                 }
 
-                var newGo = Instantiate(scrollButtonPrefab, transform);
+                var newGo = Instantiate(buttonPrefab, transform);
                 var textComp = newGo.GetComponentInChildren<TMP_Text>();
-                textComp.text = text;
                 var imageComp = newGo.GetComponent<Image>();
                 imageComp.sprite = image;
-                var buttonComp = newGo.GetComponent<PointerDownButton>();
-                buttonComp.OnDown += OnClicked;
+                var buttonComp = newGo.GetComponent<AddedEventsButton>();
+                buttonComp.OnUp += OnClicked;
+                buttonComp.OnEnter += OnEnter;
+                buttonComp.OnExit += OnExit;
+                
                 if (!isEntity && !PlayerController.Instance.Actor.PurchasedModulePrefabs.Contains(go))
                 {
                     imageComp.color = new Color(imageComp.color.r, imageComp.color.g, imageComp.color.b, 0.5f);
@@ -61,11 +71,38 @@ namespace UI
             }
         }
 
-        private void OnClicked(PointerDownButton buttonComp)
+        private void UpdateCategory()
+        {
+            UpdateCategory(_currentObjects);
+        }
+
+        private void OnClicked(AddedEventsButton buttonComp)
         {
             var refObject = ButtonGameObjectRefPair[buttonComp];
             if (!refObject) return;
             PlayerController.Instance.SelectObjectWithImage(refObject, buttonComp.GetComponent<Image>().sprite);
+            UpdateCategory();
+        }
+        
+        private void OnEnter(AddedEventsButton buttonComp)
+        {
+            var refObject = ButtonGameObjectRefPair[buttonComp];
+            if (!refObject) return;
+            if (refObject.TryGetComponent<Entity.Entity>(out var entity))
+            {
+                hoverText.Activate(entity.text);
+            }
+            if (refObject.TryGetComponent<Module>(out var module))
+            {
+                hoverText.Activate(module.text);
+            }
+        }
+        
+        private void OnExit(AddedEventsButton buttonComp)
+        {
+            var refObject = ButtonGameObjectRefPair[buttonComp];
+            if (!refObject) return;
+            hoverText.Deactivate();
         }
     }
 }

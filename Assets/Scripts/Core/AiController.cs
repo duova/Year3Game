@@ -104,51 +104,45 @@ namespace Core
             
             while (true)
             {
-                //Determine whether we want to spend on resource gathering or units.
-                //Only spawn units if resource structures cannot be spawned or if a power difference threshold has been reached.
-                var preferUnitPurchases = opponentPower - selfPower > maxPowerLevelDiffBeforeSpawningUnits.Get() || selfSpawnLocations.Where(location => location.Node).All(location => location.Entity);
                 var boughtSomething = false;
-
-                if (preferUnitPurchases)
+                
+                print("cycle");
+                
+                //Build resource structure prioritizing nodes close to center of power.
+                var sortedEmptyNodeLocations = selfSpawnLocations.Where(location => location.Node && !location.Entity).OrderBy(location =>
+                    (location.transform.position - selfPowerWeightedAveragePosition).sqrMagnitude);
+                var drillPrefab = Actor.availableEntityPrefabs.First(prefab => prefab.TryGetComponent<Drill>(out _));
+                if (drillPrefab.GetComponent<Drill>().price <= Actor.Currency && sortedEmptyNodeLocations.Any())
                 {
-                    //Buy useful module if available.
-                    var sortedModulePrefabs =
-                        Actor.availableModulePrefabs.OrderByDescending(go =>
-                            go.GetComponent<Module>().InternalPowerRating);
-                    foreach (var prefab in sortedModulePrefabs)
+                    boughtSomething = Actor.PurchaseEntity(drillPrefab, sortedEmptyNodeLocations.First());
+                    if (boughtSomething) continue;
+                }
+                
+                //Buy useful module if available.
+                var sortedModulePrefabs =
+                    Actor.availableModulePrefabs.OrderByDescending(go =>
+                        go.GetComponent<Module>().InternalPowerRating);
+                foreach (var prefab in sortedModulePrefabs)
+                {
+                    if (Actor.PurchasedModulePrefabs.Contains(prefab)) continue;
+                    if (prefab.GetComponent<Module>().price > Actor.Currency) continue;
+                    boughtSomething = Actor.PurchaseModule(prefab);
+                    break;
+                }
+
+                //If we still have currency after buying module, build up units around center of power, with a min distance being the minimum + factor based on percentage of aoe attacks.
+                var availableEntities = Actor.availableEntityPrefabs.ToList();
+                availableEntities.RemoveAll(entity => entity.TryGetComponent<Drill>(out _));
+                while (availableEntities.Count > 0)
+                {
+                    var entityToBuy = availableEntities[Random.Range(0, availableEntities.Count)];
+                    if (entityToBuy.GetComponent<Entity.Entity>().price <= Actor.Currency)
                     {
-                        if (Actor.PurchasedModulePrefabs.Contains(prefab)) continue;
-                        if (prefab.GetComponent<Module>().price > Actor.currency) continue;
-                        boughtSomething = Actor.PurchaseModule(prefab);
+                        boughtSomething = Actor.PurchaseEntity(entityToBuy,
+                            GetClosestEmptyOwnedSpawnLocation(selfPowerWeightedAveragePosition));// _idealGapSquared + Mathf.Pow(antiAoeDistanceFactor * opponentAoePercentage, 2)));
                         break;
                     }
-
-                    //If we still have currency after buying module, build up units around center of power, with a min distance being the minimum + factor based on percentage of aoe attacks.
-                    var availableEntities = Actor.availableEntityPrefabs.ToList();
-                    availableEntities.RemoveAll(entity => entity.TryGetComponent<Drill>(out _));
-                    while (availableEntities.Count > 0)
-                    {
-                        var entityToBuy = availableEntities[Random.Range(0, availableEntities.Count)];
-                        if (entityToBuy.GetComponent<Entity.Entity>().price <= Actor.currency)
-                        {
-                            boughtSomething = Actor.PurchaseEntity(entityToBuy,
-                                GetClosestEmptyOwnedSpawnLocation(selfPowerWeightedAveragePosition,
-                                    _idealGapSquared + Mathf.Pow(antiAoeDistanceFactor * opponentAoePercentage, 2)));
-                            break;
-                        }
-                        availableEntities.Remove(entityToBuy);
-                    }
-                }
-                else
-                {
-                    //Build resource structure prioritizing nodes close to center of power.
-                    var sortedEmptyNodeLocations = selfSpawnLocations.Where(location => location.Node && !location.Entity).OrderBy(location =>
-                        (location.transform.position - selfPowerWeightedAveragePosition).sqrMagnitude);
-                    var drillPrefab = Actor.availableEntityPrefabs.First(prefab => prefab.TryGetComponent<Drill>(out _));
-                    if (drillPrefab.GetComponent<Drill>().price <= Actor.currency)
-                    {
-                        boughtSomething = Actor.PurchaseEntity(drillPrefab, sortedEmptyNodeLocations.First());
-                    }
+                    availableEntities.Remove(entityToBuy);
                 }
 
                 if (!boughtSomething) break;
@@ -193,22 +187,25 @@ namespace Core
                 if (selfPower - opponentPower >= powerLevelDiffToBeConfidentAtDirectConfrontation.Get())
                 {
                 */
-                    //Direct confrontation.
-                    target = opponentEntities.OrderBy(opponentEntity =>
-                            (opponentEntity.transform.position - opponentPowerWeightedAveragePosition).sqrMagnitude)
-                        .First();
-                    /*
-                }
-                else
+                //Direct confrontation.
+                target = opponentEntities.OrderBy(opponentEntity =>
+                        (opponentEntity.transform.position - opponentPowerWeightedAveragePosition).sqrMagnitude)
+                    .FirstOrDefault();
+                /*
+            }
+            else
+            {
+                //Picking off structures.
+                target = weakTarget.gameObject;
+            }
+            */
+                if (target != null)
                 {
-                    //Picking off structures.
-                    target = weakTarget.gameObject;
-                }
-                */
-                
-                foreach (var entity in Actor.Entities.Where(entity => entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit))))
-                {
-                    entity.Actor.GiveOrder(OrderType.Move, target.SpawnLocation.gameObject, (Unit)entity, false);
+                    foreach (var entity in Actor.Entities.Where(entity =>
+                                 entity.GetType() == typeof(Unit) || entity.GetType().IsSubclassOf(typeof(Unit))))
+                    {
+                        entity.Actor.GiveOrder(OrderType.Move, target.SpawnLocation.gameObject, (Unit)entity, false);
+                    }
                 }
             }
 
@@ -216,13 +213,16 @@ namespace Core
             Actor.Ready();
         }
 
-        private SpawnLocation GetClosestEmptyOwnedSpawnLocation(Vector3 position, float minDistanceSquaredFromAnotherEntity)
+        private SpawnLocation GetClosestEmptyOwnedSpawnLocation(Vector3 position)//, float minDistanceSquaredFromAnotherEntity)
         {
             var allEntities = MatchManager.Instance.Actors.SelectMany(actor => actor.Entities).ToArray();
             var orderedLocations = Actor.SpawnLocations
                 .OrderBy(spawnLoc => (spawnLoc.transform.position - position).sqrMagnitude)
                 .ToArray();
-            return orderedLocations.FirstOrDefault(loc => loc.Entity == null && !allEntities.Any(entity => (entity.transform.position - position).sqrMagnitude > minDistanceSquaredFromAnotherEntity));
+            return
+                orderedLocations.FirstOrDefault(loc =>
+                    loc.Entity ==
+                    null); // && !allEntities.Any(entity => (entity.transform.position - position).sqrMagnitude > minDistanceSquaredFromAnotherEntity));
         }
 
         private static Vector3 PowerWeightedAveragePosition(IEnumerable<Entity.Entity> entities)

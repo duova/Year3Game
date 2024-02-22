@@ -6,6 +6,7 @@ using Terrain;
 using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Core
@@ -47,15 +48,9 @@ namespace Core
         private Vector2 _rotation = Vector2.zero;
         private const string XAxis = "Mouse X";
         private const string YAxis = "Mouse Y";
-
-        [SerializeField]
-        private ScrollCategory buildCategory;
         
         [SerializeField]
-        private ScrollCategory unitCategory;
-        
-        [SerializeField]
-        private ScrollCategory modCategory;
+        public MenuLoader spawnMenuLoader;
 
         [SerializeField]
         private GameObject canvas;
@@ -76,13 +71,6 @@ namespace Core
             }
         }
 
-        protected void Start()
-        {
-            buildCategory.UpdateCategory(Actor.availableEntityPrefabs.Where(entity => !entity.TryGetComponent<Unit>(out _)).ToArray());
-            unitCategory.UpdateCategory(Actor.availableEntityPrefabs.Where(entity => entity.TryGetComponent<Unit>(out _)).ToArray());
-            modCategory.UpdateCategory(Actor.availableModulePrefabs);
-        }
-
         private void FixedUpdate()
         {
             if (_selectedUnitLineRenderer != null && Selected != null)
@@ -94,7 +82,7 @@ namespace Core
                 _selectedUnitLineRenderer.SetPositions(new []{Selected.transform.position, point});
             }
             
-            currency.text = "$" + Actor.currency;
+            currency.text = "$" + Actor.Currency;
             if (currency.color != Color.white)
             {
                 var color = currency.color;
@@ -125,17 +113,43 @@ namespace Core
                     if (!Actor.PurchaseModule(go))
                     {
                         currency.color = Color.red;
+                        DeductCurrencyText.Instance.NoMoney();
                     }
-                    modCategory.UpdateCategory(Actor.availableModulePrefabs);
                     return;
                 }
+                else
+                {
+                    if (ModuleMenu.Instance.IsOpen)
+                    {
+                        var slot = ModuleMenu.Instance.ModuleSlot;
+                        if (module.GetModuleTypes().Contains(slot.slotType))
+                        {
+                            if (slot.Module != null)
+                            {
+                                slot.UninstallModule();
+                            }
+                            slot.InstallModule(module.gameObject);
+                        }
+                        EntityMenu.Instance.PresentSlots();
+                        ModuleMenu.Instance.Close();
+                    }
+                }
             }
-            SelectedImage = new GameObject();
-            SelectedImage.transform.parent = canvas.transform;
-            var imageComp = SelectedImage.AddComponent<Image>();
-            imageComp.sprite = image;
-            imageComp.color = new Color(imageComp.color.r, imageComp.color.g, imageComp.color.b, 0.5f);
-            imageComp.raycastTarget = false;
+
+            if (go.TryGetComponent(out Entity.Entity entity))
+            {
+                if (Actor.PurchaseEntity(Selected, SpawnMenu.Instance.SpawnLocation))
+                {
+                    SpawnMenu.Instance.Close();
+                }
+                else
+                {
+                    currency.color = Color.red;
+                    DeductCurrencyText.Instance.NoMoney();
+                }
+            }
+
+            Selected = null;
         }
 
         public void Ready()
@@ -149,6 +163,10 @@ namespace Core
             if (MatchManager.Instance.MatchState == MatchState.Simulation)
             {
                 ClearMouseState();
+                if (SpawnMenu.Instance.IsOpen)
+                {
+                    SpawnMenu.Instance.Close();
+                }
                 
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
@@ -210,6 +228,34 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
+            if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
+            
+            if (EntityMenu.Instance.Entity == null && entity.Actor == Actor)
+            {
+                EntityMenu.Instance.Open(entity);
+            }
+        }
+
+        public void MouseUp(SpawnLocation location)
+        {
+            if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
+            
+            if (SpawnMenu.Instance.SpawnLocation == null && location.Actor == Actor)
+            {
+                SpawnMenu.Instance.Open(location);
+            }
+        }
+
+        public void MouseDown(Entity.Entity entity)
+        {
+        }
+        
+        public void MouseDown(SpawnLocation location)
+        {
+        }
+        
+        public void RightMouseUp(Entity.Entity entity)
+        {
             if (!Selected) return;
             if (Selected.TryGetComponent(out Unit unit) && !Actor.availableEntityPrefabs.Contains(Selected))
             {
@@ -240,28 +286,17 @@ namespace Core
             _selectedUnitLineRenderer = null;
         }
 
-        public void MouseUp(SpawnLocation location)
+        public void RightMouseUp(SpawnLocation location)
         {
-            if (Actor.availableEntityPrefabs.Contains(Selected))
+            if (Selected && Selected.TryGetComponent(out Unit unit))
             {
-                if (!Actor.PurchaseEntity(Selected, location))
-                {
-                    currency.color = Color.red;
-                }
+                Actor.GiveOrder(OrderType.Move, location.gameObject, unit, true);
             }
-            else
-            {
-                if (Selected && Selected.TryGetComponent(out Unit unit))
-                {
-                    Actor.GiveOrder(OrderType.Move, location.gameObject, unit, true);
-                }
-            }
-
             Selected = null;
             _selectedUnitLineRenderer = null;
         }
 
-        public void MouseDown(Entity.Entity entity)
+        public void RightMouseDown(Entity.Entity entity)
         {
             if (Actor.availableEntityPrefabs.Contains(entity.gameObject)) return;
             if (entity.TryGetComponent<Unit>(out _))
@@ -270,6 +305,10 @@ namespace Core
                 _selectedUnitLineRenderer = entity.gameObject.GetComponent<LineRenderer>();
                 _selectedUnitLineRenderer.positionCount = 2;
             }
+        }
+        
+        public void RightMouseDown(SpawnLocation location)
+        {
         }
 
         private void MoveInDirection(KeyCode key, Vector3 direction)
