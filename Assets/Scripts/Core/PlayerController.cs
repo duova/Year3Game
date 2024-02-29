@@ -215,7 +215,7 @@ namespace Core
                 _queueNextFrameSelectReset = false;
             }
             
-            if (Input.GetKeyUp(KeyCode.Mouse0))
+            if (Input.GetKeyUp(KeyCode.Mouse1))
             {
                 if (_selectedUnitLineRenderer)
                 {
@@ -299,7 +299,7 @@ namespace Core
         public void RightMouseDown(Entity.Entity entity)
         {
             if (Actor.availableEntityPrefabs.Contains(entity.gameObject)) return;
-            if (entity.TryGetComponent<Unit>(out _))
+            if (entity.TryGetComponent<Unit>(out _) && entity.Actor == Actor)
             {
                 Selected = entity.gameObject;
                 _selectedUnitLineRenderer = entity.gameObject.GetComponent<LineRenderer>();
