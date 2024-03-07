@@ -76,7 +76,7 @@ namespace Core
 
         #region Controller Callable Actions
         
-        public bool PurchaseEntity(GameObject prefab, SpawnLocation location)
+        public bool PurchaseEntity(GameObject prefab, SpawnLocation location, bool pay = true)
         {
             if (!prefab || !location) return false;
             if (location.Actor != this) return false;
@@ -84,35 +84,34 @@ namespace Core
             {
                 throw new Exception("Tried to purchase entity GameObject that doesn't have an entity component.");
             }
-            if (prefabEntity.price > Currency) return false;
+            if (pay && prefabEntity.price > Currency) return false;
             if (prefabEntity.GetType() == typeof(Drill) && !location.Node)
             {
                 print("Drill can only be placed on a node.");
                 return false;
             }
             if (!location.SpawnEntity(prefab)) return false;
-            Currency -= prefabEntity.price;
+            if (pay)
+            {
+                Currency -= prefabEntity.price;
+            }
             return true;
         }
 
-        public bool PurchaseModule(GameObject modulePrefab)
+        public bool InstallModule(GameObject modulePrefab, ModuleSlot slot, bool pay = true)
         {
-            if (!modulePrefab) return false;
+            if (!modulePrefab/* || !PurchasedModulePrefabs.Contains(modulePrefab) */) return false;
             if (!modulePrefab.TryGetComponent(out Module module))
             {
                 throw new Exception("Tried to purchase module GameObject that doesn't have a module component.");
             }
-            if (module.price > Currency) return false;
-            if (!availableModulePrefabs.Contains(modulePrefab)) return false;
-            if (PurchasedModulePrefabs.Contains(modulePrefab)) return false;
-            PurchasedModulePrefabs.Add(modulePrefab);
-            Currency -= module.price;
-            return true;
-        }
 
-        public bool InstallModule(GameObject modulePrefab, ModuleSlot slot)
-        {
-            if (!modulePrefab || !PurchasedModulePrefabs.Contains(modulePrefab)) return false;
+            if (pay)
+            {
+                if (module.price > Currency) return false;
+                Currency -= module.price;
+            }
+
             return slot.InstallModule(modulePrefab);
         }
         

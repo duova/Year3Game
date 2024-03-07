@@ -5,7 +5,6 @@ using Core;
 using Entity.Module;
 using Terrain;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace Entity
 {
@@ -88,9 +87,9 @@ namespace Entity
                 foreach (var ally in orderedAllyList.Where(ally => ally != this))
                 {
                     if (!ally.ModuleSlots.FirstOrDefault(slot => slot.Module != null
-                                                      && slot.Module is AuraModule auraModule
-                                                      && (ally.transform.position - transform.position).sqrMagnitude <
-                                                      auraModule.rangeSquared)) continue;
+                                                                 && slot.Module is AuraModule auraModule
+                                                                 && (ally.transform.position - transform.position).sqrMagnitude <
+                                                                 auraModule.rangeSquared)) continue;
                     //Reduce damage.
                     healthChange *= 1 - AuraModule.DamageReduction;
                     break;
@@ -149,12 +148,15 @@ namespace Entity
             SimulationTicker = !SimulationTicker;
             
             if (SimulationTicker) return;
+
+            if (GarageManager.Instance.inGarage) return;
             
             foreach (var actor in MatchManager.Instance.Actors)
             {
                 if (actor == Actor) continue;
                 if (actor.Entities.Count == 0) continue;
-                OrderedEnemyList = actor.Entities.OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
+                OrderedEnemyList = actor.Entities
+                    .OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
             }
 
             var healthLocalScale = healthBar.transform.localScale;

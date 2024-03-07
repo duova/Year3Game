@@ -19,6 +19,9 @@ namespace UI
         [SerializeField]
         public HoverText hoverText;
 
+        [SerializeField]
+        private bool garage;
+
         private GameObject[] _currentObjects;
 
         public Dictionary<AddedEventsButton, GameObject> ButtonGameObjectRefPair { get; private set; } = new();
@@ -62,11 +65,6 @@ namespace UI
                 buttonComp.OnEnter += OnEnter;
                 buttonComp.OnExit += OnExit;
                 
-                if (!isEntity && !PlayerController.Instance.Actor.PurchasedModulePrefabs.Contains(go))
-                {
-                    imageComp.color = new Color(imageComp.color.r, imageComp.color.g, imageComp.color.b, 0.5f);
-                }
-                
                 ButtonGameObjectRefPair.Add(buttonComp, go);
             }
         }
@@ -80,7 +78,7 @@ namespace UI
         {
             var refObject = ButtonGameObjectRefPair[buttonComp];
             if (!refObject) return;
-            PlayerController.Instance.SelectObjectWithImage(refObject, buttonComp.GetComponent<Image>().sprite);
+            PlayerController.Instance.SelectObjectWithImage(refObject, buttonComp.GetComponent<Image>().sprite, garage);
             UpdateCategory();
         }
         

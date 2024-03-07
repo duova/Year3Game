@@ -94,62 +94,85 @@ namespace Core
             phase.text = "Phase: " + (MatchManager.Instance.MatchState == MatchState.Strategy
                 ? "Planning"
                 : "Combat");
-
-            if (MatchManager.Instance.MatchState == MatchState.Strategy)
+            
+            if (MatchManager.Instance.MatchState == MatchState.Strategy && !GarageManager.Instance.inGarage)
             {
                 var camTransform = _camera.transform;
-                camTransform.position = _originalCameraPosition;
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
                 camTransform.rotation = _originalCameraRotation;
+                camTransform.position = _originalCameraPosition;
+                _rotation = originalCameraV2Rotation;
             }
         }
 
-        public void SelectObjectWithImage(GameObject go, Sprite image)
+        public void SelectObjectWithImage(GameObject go, Sprite image, bool garage = false)
         {
-            Selected = go;
-            if (go.TryGetComponent(out Module module))
+            if (garage)
             {
-                if (!Actor.PurchasedModulePrefabs.Contains(go))
+                if (go.TryGetComponent(out Module module))
                 {
-                    if (!Actor.PurchaseModule(go))
+                    GarageManager.Instance.SelectModule(go);
+                }
+
+                if (go.TryGetComponent(out Entity.Entity entity))
+                {
+                    GarageManager.Instance.SelectEntity(go);
+                }
+            }
+            /*
+            else
+            {
+                Selected = go;
+                if (go.TryGetComponent(out Module module))
+                {
+                    if (!Actor.PurchasedModulePrefabs.Contains(go))
+                    {
+                        if (!Actor.PurchaseModule(go))
+                        {
+                            currency.color = Color.red;
+                            DeductCurrencyText.Instance.NoMoney();
+                        }
+
+                        return;
+                    }
+                    else
+                    {
+                        if (ModuleMenu.Instance.IsOpen)
+                        {
+                            var slot = ModuleMenu.Instance.ModuleSlot;
+                            if (module.GetModuleTypes().Contains(slot.slotType))
+                            {
+                                if (slot.Module != null)
+                                {
+                                    slot.UninstallModule();
+                                }
+
+                                slot.InstallModule(module.gameObject);
+                            }
+
+                            EntityMenu.Instance.PresentSlots();
+                            ModuleMenu.Instance.Close();
+                        }
+                    }
+                }
+
+                if (go.TryGetComponent(out Entity.Entity entity))
+                {
+                    if (Actor.PurchaseEntity(Selected, SpawnMenu.Instance.SpawnLocation))
+                    {
+                        SpawnMenu.Instance.Close();
+                    }
+                    else
                     {
                         currency.color = Color.red;
                         DeductCurrencyText.Instance.NoMoney();
                     }
-                    return;
                 }
-                else
-                {
-                    if (ModuleMenu.Instance.IsOpen)
-                    {
-                        var slot = ModuleMenu.Instance.ModuleSlot;
-                        if (module.GetModuleTypes().Contains(slot.slotType))
-                        {
-                            if (slot.Module != null)
-                            {
-                                slot.UninstallModule();
-                            }
-                            slot.InstallModule(module.gameObject);
-                        }
-                        EntityMenu.Instance.PresentSlots();
-                        ModuleMenu.Instance.Close();
-                    }
-                }
-            }
 
-            if (go.TryGetComponent(out Entity.Entity entity))
-            {
-                if (Actor.PurchaseEntity(Selected, SpawnMenu.Instance.SpawnLocation))
-                {
-                    SpawnMenu.Instance.Close();
-                }
-                else
-                {
-                    currency.color = Color.red;
-                    DeductCurrencyText.Instance.NoMoney();
-                }
+                Selected = null;
             }
-
-            Selected = null;
+            */
         }
 
         public void Ready()
@@ -189,14 +212,6 @@ namespace Core
 
                 camTransform.rotation = xQuat * yQuat;
             }
-            else
-            {
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-                camTransform.rotation = _originalCameraRotation;
-                camTransform.position = _originalCameraPosition;
-                _rotation = originalCameraV2Rotation;
-            }
             
             if (SelectedImage && _camera)
             {
@@ -228,21 +243,46 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
+            /*
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
             
             if (EntityMenu.Instance.Entity == null && entity.Actor == Actor)
             {
                 EntityMenu.Instance.Open(entity);
             }
+            */
         }
 
         public void MouseUp(SpawnLocation location)
         {
+            /*
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
             
             if (SpawnMenu.Instance.SpawnLocation == null && location.Actor == Actor)
             {
                 SpawnMenu.Instance.Open(location);
+            }
+            */
+            
+            var save = GarageManager.Instance.EntitySaves[GarageManager.Instance.CurrentSaveSlotIndex];
+            
+            if (save.EntityPrefab == null) return;
+            
+            if (Actor.Currency < save.Cost)
+            {
+                DeductCurrencyText.Instance.NoMoney();
+                return;
+            }
+
+            Actor.Currency -= save.Cost;
+            
+            Actor.PurchaseEntity(save.EntityPrefab, location, false);
+
+            for (var i = 0; i < save.ModulePrefabs.Length; i++)
+            {
+                var module = save.ModulePrefabs[i];
+                if (!module) return;
+                Actor.InstallModule(module, location.Entity.ModuleSlots[i], false);
             }
         }
 

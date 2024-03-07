@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7337238599446637249}
   - component: {fileID: 5863757006118411232}
   m_Layer: 0
-  m_Name: SmallSlot (1)
+  m_Name: SmallSlotR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -78,10 +78,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2422797143416813402}
-  - {fileID: 5803522641491746523}
   - {fileID: 8709280740965755556}
-  - {fileID: 7337238599446637249}
   - {fileID: 7602454407819417439}
+  - {fileID: 5803522641491746523}
+  - {fileID: 7337238599446637249}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -141,7 +141,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1691015488602342855}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: -1372625422
   m_Radius: 0.5
   m_Speed: 1
@@ -290,7 +290,7 @@ GameObject:
   - component: {fileID: 7602454407819417439}
   - component: {fileID: 1665808009938651610}
   m_Layer: 0
-  m_Name: SmallSlot (2)
+  m_Name: SmallSlotL
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -335,7 +335,7 @@ GameObject:
   - component: {fileID: 5803522641491746523}
   - component: {fileID: 6836609728665469348}
   m_Layer: 0
-  m_Name: SmallSlot
+  m_Name: SmallSlotM
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

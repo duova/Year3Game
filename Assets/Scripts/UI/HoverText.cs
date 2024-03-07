@@ -27,6 +27,7 @@ namespace UI
 
         public void Activate(string text)
         {
+            Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
             SetText(text);
             gameObject.SetActive(true);
         }

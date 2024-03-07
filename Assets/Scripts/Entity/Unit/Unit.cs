@@ -108,9 +108,10 @@ namespace Entity.Unit
             base.FixedUpdate();
             
             if (SimulationTicker) return;
+
+            if (GarageManager.Instance.inGarage) return;
             
-            _agent.destination = Target ? Target.transform.position : transform.position;
-            
+            /*
             if (rightClickPrefab != null && Actor == PlayerController.Instance.Actor)
             {
                 if (MatchManager.Instance.MatchState == MatchState.Simulation)
@@ -138,8 +139,14 @@ namespace Entity.Unit
                     }
                 }
             }
+            */
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
+
+            if (_agent && _agent.enabled && _agent.isOnNavMesh)
+            {
+                _agent.destination = Target ? Target.transform.position : transform.position;
+            }
 
             //If the unit regains a target, we want to add it to the list again.
             if (Target)

@@ -116,19 +116,34 @@ namespace Core
                     if (boughtSomething) continue;
                 }
                 
-                //Buy useful module if available.
-                var sortedModulePrefabs =
-                    Actor.availableModulePrefabs.OrderByDescending(go =>
-                        go.GetComponent<Module>().InternalPowerRating);
-                foreach (var prefab in sortedModulePrefabs)
+                //Equip units.
+                foreach (var slot in Actor.Entities.SelectMany(entity => entity.ModuleSlots).Where(slot => slot.Module == null))
                 {
-                    if (Actor.PurchasedModulePrefabs.Contains(prefab)) continue;
-                    if (prefab.GetComponent<Module>().price > Actor.Currency) continue;
-                    boughtSomething = Actor.PurchaseModule(prefab);
-                    break;
+                    var nonAoeSelection = Actor.availableModulePrefabs.Where(module =>
+                    {
+                        var comp = module.GetComponent<Module>();
+                        return !comp.IsAreaOfEffectAttack() && comp.GetModuleTypes().Contains(slot.slotType);
+                    });
+                    var aoeSelection = Actor.availableModulePrefabs.Where(module =>
+                    {
+                        var comp = module.GetComponent<Module>();
+                        return comp.IsAreaOfEffectAttack() && comp.GetModuleTypes().Contains(slot.slotType);
+                    });
+                    if (Random.Range(0f, 100f) > opponentGroupingRating)
+                    {
+                        Actor.InstallModule(
+                            nonAoeSelection.OrderByDescending(module => module.GetComponent<Module>().InternalPowerRating)
+                                .First(), slot);
+                    }
+                    else
+                    {
+                        Actor.InstallModule(
+                            aoeSelection.OrderByDescending(module => module.GetComponent<Module>().InternalPowerRating)
+                                .First(), slot);
+                    }
                 }
 
-                //If we still have currency after buying module, build up units around center of power, with a min distance being the minimum + factor based on percentage of aoe attacks.
+                //Build up units around center of power, with a min distance being the minimum + factor based on percentage of aoe attacks.
                 var availableEntities = Actor.availableEntityPrefabs.ToList();
                 availableEntities.RemoveAll(entity => entity.TryGetComponent<Drill>(out _));
                 while (availableEntities.Count > 0)
@@ -144,34 +159,6 @@ namespace Core
                 }
 
                 if (!boughtSomething) break;
-            }
-            
-            //Equip units.
-            foreach (var slot in Actor.Entities.SelectMany(entity => entity.ModuleSlots))
-            {
-                var nonAoeSelection = Actor.PurchasedModulePrefabs.Where(module =>
-                {
-                    var comp = module.GetComponent<Module>();
-                    return !comp.IsAreaOfEffectAttack() && comp.GetModuleTypes().Contains(slot.slotType);
-                });
-                var aoeSelection = Actor.PurchasedModulePrefabs.Where(module =>
-                {
-                    var comp = module.GetComponent<Module>();
-                    return comp.IsAreaOfEffectAttack() && comp.GetModuleTypes().Contains(slot.slotType);
-                });
-                if (Random.Range(0f, 100f) > opponentGroupingRating)
-                {
-                    //Uninstall
-                    Actor.InstallModule(
-                        nonAoeSelection.OrderByDescending(module => module.GetComponent<Module>().InternalPowerRating)
-                            .First(), slot);
-                }
-                else
-                {
-                    Actor.InstallModule(
-                        nonAoeSelection.OrderByDescending(module => module.GetComponent<Module>().InternalPowerRating)
-                            .First(), slot);
-                }
             }
 
             //Attack if unit power sum is above a certain threshold (range randomized to offer different levels of aggression).
