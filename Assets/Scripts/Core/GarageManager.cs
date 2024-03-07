@@ -153,7 +153,7 @@ namespace Core
             {
                 var entityToDestroy = spawnLocation.Entity;
                 entityToDestroy.Detach();
-                Destroy(entityToDestroy.gameObject);
+                entityToDestroy.Destroy();
                 _currentModulePrefabs = null;
             }
 
@@ -167,11 +167,14 @@ namespace Core
             for (var i = 0; i < spawnLocation.Entity.ModuleSlots.Length; i++)
             {
                 moduleSlotButtons[i].SetActive(true);
+                moduleSlotButtons[i].transform.localPosition =
+                    (Camera.main.WorldToScreenPoint(spawnLocation.Entity.ModuleSlots[i].transform.position) - new Vector3(Screen.width / 2f, Screen.height/2f)) * 2f;
             }
 
             _currentEntityPrefab = prefab;
             _currentModulePrefabs = new GameObject[spawnLocation.Entity.ModuleSlots.Length];
             SelectModuleSlot(0);
+            spawnLocation.Entity.HideHealth();
         }
 
         public void SelectModule(GameObject prefab)
@@ -222,6 +225,7 @@ namespace Core
             _currentEntityPrefab = null;
             _currentModulePrefabs = null;
             inGarage = false;
+            nameField.text = "";
             mainCanvas.SetActive(true);
             garageCanvas.SetActive(false);
         }
@@ -236,7 +240,7 @@ namespace Core
                     go.transform.GetChild(0).gameObject.SetActive(false);
                 }
 
-                go.GetComponent<Image>().color = new Color(1, 1, 1, 1);
+                go.GetComponent<Image>().color = new Color(1, 1, 1, 0.7f);
             }
 
             if (moduleSlotButtons.Length > index)
@@ -246,7 +250,7 @@ namespace Core
                 {
                     tf.GetChild(0).gameObject.SetActive(true);
                 }
-                moduleSlotButtons[index].GetComponent<Image>().color = new Color(1, 1, 1, 0.5f);
+                moduleSlotButtons[index].GetComponent<Image>().color = new Color(1, 1, 1, 1);
             }
         }
         
@@ -341,7 +345,11 @@ namespace Core
                         child.gameObject.SetActive(true);
                     }
 
-                    imageComp.color = new Color(1, 1, 1, 0.5f);
+                    imageComp.color = new Color(1, 1, 1, 1);
+                }
+                else
+                {
+                    imageComp.color = new Color(1, 1, 1, 0.7f);
                 }
             }
         }

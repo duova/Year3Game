@@ -26,7 +26,7 @@ namespace UI
 
         public Dictionary<AddedEventsButton, GameObject> ButtonGameObjectRefPair { get; private set; } = new();
 
-        public void UpdateCategory(GameObject[] gameObjects)
+        public void UpdateCategory(GameObject[] gameObjects, bool clickable = true)
         {
             _currentObjects = gameObjects;
             
@@ -49,6 +49,7 @@ namespace UI
                     text = entity.text;
                     isEntity = true;
                 }
+
                 if (go.TryGetComponent(out Module module))
                 {
                     image = module.image;
@@ -64,7 +65,6 @@ namespace UI
                 buttonComp.OnUp += OnClicked;
                 buttonComp.OnEnter += OnEnter;
                 buttonComp.OnExit += OnExit;
-                
                 ButtonGameObjectRefPair.Add(buttonComp, go);
             }
         }

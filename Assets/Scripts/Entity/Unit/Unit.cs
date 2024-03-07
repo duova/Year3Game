@@ -15,7 +15,7 @@ namespace Entity.Unit
         Move, //Target should be an object with a SpawnLocation component.
         Follow //Target should be a unit.
     }
-    
+
     [Serializable]
     public struct UnitOrder
     {
@@ -28,12 +28,11 @@ namespace Entity.Unit
             Target = target;
         }
     }
-    
+
     [RequireComponent(typeof(LineRenderer))]
     public class Unit : Entity
     {
-        [field: SerializeField]
-        public UnitOrder Order { get; set; }
+        [field: SerializeField] public UnitOrder Order { get; set; }
 
         public GameObject Target { get; private set; }
 
@@ -41,19 +40,15 @@ namespace Entity.Unit
 
         private bool _inEnemyTerritory;
 
-        [SerializeField]
-        private float engagementRange;
+        [SerializeField] private float engagementRange;
 
-        [SerializeField]
-        private float rotateSpeed = 360;
+        [SerializeField] private float rotateSpeed = 360;
 
         private float _originalSpeed;
 
-        [HideInInspector]
-        public LineRenderer LineRenderer;
-        
-        [SerializeField]
-        private GameObject rightClickPrefab;
+        [HideInInspector] public LineRenderer LineRenderer;
+
+        [SerializeField] private GameObject rightClickPrefab;
 
         private GameObject rightClick;
 
@@ -73,7 +68,7 @@ namespace Entity.Unit
         public override void BeginSimulation()
         {
             LineRenderer.positionCount = 0;
-            
+
             if (Order.OrderType is OrderType.Move or OrderType.Follow)
             {
                 Target = Order.Target;
@@ -87,7 +82,7 @@ namespace Entity.Unit
             {
                 MatchManager.Instance.ActiveUnits.Add(this);
             }
-            
+
             _agent.speed = _originalSpeed;
             foreach (var slot in ModuleSlots)
             {
@@ -106,11 +101,11 @@ namespace Entity.Unit
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
-            
+
             if (SimulationTicker) return;
 
             if (GarageManager.Instance.inGarage) return;
-            
+
             /*
             if (rightClickPrefab != null && Actor == PlayerController.Instance.Actor)
             {
@@ -143,10 +138,7 @@ namespace Entity.Unit
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
 
-            if (_agent && _agent.enabled && _agent.isOnNavMesh)
-            {
-                _agent.destination = Target ? Target.transform.position : transform.position;
-            }
+            _agent.destination = Target ? Target.transform.position : transform.position;
 
             //If the unit regains a target, we want to add it to the list again.
             if (Target)
@@ -156,26 +148,31 @@ namespace Entity.Unit
                     MatchManager.Instance.ActiveUnits.Add(this);
                 }
             }
-            
+
             //Determine if closest spawn location is owned by the enemy.
             List<SpawnLocation> spawnLocations = new();
             foreach (var actor in MatchManager.Instance.Actors)
             {
                 spawnLocations.AddRange(actor.SpawnLocations);
             }
-            var orderedLocations = spawnLocations.OrderBy(location => (location.transform.position - transform.position).sqrMagnitude).ToArray();
+
+            var orderedLocations = spawnLocations
+                .OrderBy(location => (location.transform.position - transform.position).sqrMagnitude).ToArray();
             _inEnemyTerritory = orderedLocations[0].Actor != Actor;
-            
+
             //Rotate towards target.
             if (Target)
             {
                 transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                    Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up), rotateSpeed / 30f);
+                    Quaternion.LookRotation(Target.transform.position - transform.position, Vector3.up),
+                    rotateSpeed / 30f);
             }
-            
+
             //Clear target if it is a spawn location owned by the enemy and the unit has arrived.
-            if (Target && Target.TryGetComponent<SpawnLocation>(out var spawnLocation) && spawnLocation.Actor != Actor && (Target.transform.position - transform.position).sqrMagnitude <= 2f * 2f) Target = null;
-            
+            if (Target && Target.TryGetComponent<SpawnLocation>(out var spawnLocation) &&
+                spawnLocation.Actor != Actor &&
+                (Target.transform.position - transform.position).sqrMagnitude <= 2f * 2f) Target = null;
+
             //Only retarget if the unit is stuck in enemy territory and has no existing target.
             if (_inEnemyTerritory && !Target)
             {
@@ -201,6 +198,7 @@ namespace Entity.Unit
                 //Or are really far away.
                 if ((Target.transform.position - transform.position).sqrMagnitude > 2f * 2f) return;
             }
+
             //Remove it from the active list.
             if (MatchManager.Instance.ActiveUnits.Contains(this))
             {
@@ -220,6 +218,7 @@ namespace Entity.Unit
             {
                 MatchManager.Instance.ActiveUnits.Remove(this);
             }
+
             base.Destroy();
         }
     }

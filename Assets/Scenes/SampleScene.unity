@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17817093, g: 0.2230845, b: 0.30515507, a: 1}
+  m_IndirectSpecularColor: {r: 0.17817074, g: 0.22308427, b: 0.30515462, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6216,13 +6216,13 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1159687829}
-  - {fileID: 1895424663}
   - {fileID: 1504230401}
   - {fileID: 1510059840}
   - {fileID: 1538440468}
   - {fileID: 1350497979}
   - {fileID: 1478944967}
   - {fileID: 2018977897}
+  - {fileID: 1895424663}
   m_Father: {fileID: 0}
   m_RootOrder: 14
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -15950,6 +15950,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offset: {x: 0, y: 200}
   textComp: {fileID: 1450620107}
+  canvas: {fileID: 1054791490}
 --- !u!1 &955957379
 GameObject:
   m_ObjectHideFlags: 0
@@ -17109,6 +17110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offset: {x: 0, y: -200}
   textComp: {fileID: 1210141842}
+  canvas: {fileID: 1054791490}
 --- !u!114 &1041103111
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33383,6 +33385,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offset: {x: 0, y: -200}
   textComp: {fileID: 855352851}
+  canvas: {fileID: 395044024}
 --- !u!224 &1895424663
 RectTransform:
   m_ObjectHideFlags: 0

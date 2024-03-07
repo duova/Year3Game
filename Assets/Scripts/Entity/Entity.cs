@@ -131,6 +131,11 @@ namespace Entity
             Destroy(gameObject);
         }
 
+        public void HideHealth()
+        {
+            healthBar.SetActive(false);
+        }
+
         public abstract void BeginSimulation();
 
         public abstract void EndSimulation();

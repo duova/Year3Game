@@ -1,6 +1,7 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
+using Unity.UI;
 
 namespace UI
 {
@@ -14,6 +15,8 @@ namespace UI
 
         private RectTransform _rectTransform;
 
+        [SerializeField] private Canvas canvas;
+
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
@@ -26,8 +29,8 @@ namespace UI
         }
 
         public void Activate(string text)
-        {
-            Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
+        { 
+            Relocate();
             SetText(text);
             gameObject.SetActive(true);
         }
@@ -36,15 +39,18 @@ namespace UI
         {
             gameObject.SetActive(false);
         }
-        
-        private void Relocate(Vector2 pos)
-        {
-            _rectTransform.anchoredPosition = pos;
-        }
 
         private void Update()
         {
-            Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
+            Relocate();
+        }
+
+        private void Relocate()
+        {
+            var scaleFactor = canvas.scaleFactor;
+            var clampedMousePos = new Vector2(Mathf.Clamp(Input.mousePosition.x, 150 * scaleFactor, Screen.width - 150 * scaleFactor),
+                Mathf.Clamp(Input.mousePosition.y, 150 * scaleFactor, Screen.height - 150 * scaleFactor));
+            _rectTransform.anchoredPosition = (clampedMousePos - new Vector2(Screen.width, Screen.height) / 2f) / scaleFactor + offset;
         }
     }
 }

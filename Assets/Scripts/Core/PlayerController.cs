@@ -120,10 +120,10 @@ namespace Core
                     GarageManager.Instance.SelectEntity(go);
                 }
             }
-            /*
             else
             {
                 Selected = go;
+                /*
                 if (go.TryGetComponent(out Module module))
                 {
                     if (!Actor.PurchasedModulePrefabs.Contains(go))
@@ -156,7 +156,7 @@ namespace Core
                         }
                     }
                 }
-
+                */
                 if (go.TryGetComponent(out Entity.Entity entity))
                 {
                     if (Actor.PurchaseEntity(Selected, SpawnMenu.Instance.SpawnLocation))
@@ -172,7 +172,6 @@ namespace Core
 
                 Selected = null;
             }
-            */
         }
 
         public void Ready()
@@ -243,46 +242,49 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
-            /*
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
             
             if (EntityMenu.Instance.Entity == null && entity.Actor == Actor)
             {
                 EntityMenu.Instance.Open(entity);
             }
-            */
         }
 
         public void MouseUp(SpawnLocation location)
         {
-            /*
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
-            
-            if (SpawnMenu.Instance.SpawnLocation == null && location.Actor == Actor)
-            {
-                SpawnMenu.Instance.Open(location);
-            }
-            */
-            
-            var save = GarageManager.Instance.EntitySaves[GarageManager.Instance.CurrentSaveSlotIndex];
-            
-            if (save.EntityPrefab == null) return;
-            
-            if (Actor.Currency < save.Cost)
-            {
-                DeductCurrencyText.Instance.NoMoney();
-                return;
-            }
 
-            Actor.Currency -= save.Cost;
-            
-            Actor.PurchaseEntity(save.EntityPrefab, location, false);
-
-            for (var i = 0; i < save.ModulePrefabs.Length; i++)
+            if (location.Node)
             {
-                var module = save.ModulePrefabs[i];
-                if (!module) return;
-                Actor.InstallModule(module, location.Entity.ModuleSlots[i], false);
+
+                if (SpawnMenu.Instance.SpawnLocation == null && location.Actor == Actor)
+                {
+                    SpawnMenu.Instance.Open(location);
+                }
+
+            }
+            else
+            {
+                var save = GarageManager.Instance.EntitySaves[GarageManager.Instance.CurrentSaveSlotIndex];
+
+                if (save.EntityPrefab == null) return;
+
+                if (Actor.Currency < save.Cost)
+                {
+                    DeductCurrencyText.Instance.NoMoney();
+                    return;
+                }
+
+                Actor.Currency -= save.Cost;
+
+                Actor.PurchaseEntity(save.EntityPrefab, location, false);
+
+                for (var i = 0; i < save.ModulePrefabs.Length; i++)
+                {
+                    var module = save.ModulePrefabs[i];
+                    if (!module) return;
+                    Actor.InstallModule(module, location.Entity.ModuleSlots[i], false);
+                }
             }
         }
 
