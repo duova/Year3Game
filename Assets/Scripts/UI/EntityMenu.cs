@@ -41,6 +41,9 @@ namespace UI
 
         [SerializeField]
         private ModuleMenu moduleMenu;
+
+        [SerializeField]
+        private Canvas canvas;
         
         public Dictionary<AddedEventsButton, ModuleSlot> ButtonSlotRefPair { get; private set; } = new();
 
@@ -55,7 +58,7 @@ namespace UI
             IsOpen = true;
             gameObject.SetActive(true);
             Entity = entity;
-            Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
+            Relocate();
             infoText.text = entity.text;
             PresentSlots();
         }
@@ -68,9 +71,11 @@ namespace UI
             gameObject.SetActive(false);
         }
 
-        private void Relocate(Vector2 pos)
+        private void Relocate()
         {
-            movableObject.GetComponent<RectTransform>().anchoredPosition = pos;
+            var scaleFactor = canvas.scaleFactor;
+            var mousePos = Input.mousePosition;
+            transform.localPosition = (mousePos - new Vector3(Screen.width, Screen.height) / 2f) / scaleFactor + new Vector3(offset.x, offset.y);
         }
         
         public void PresentSlots()

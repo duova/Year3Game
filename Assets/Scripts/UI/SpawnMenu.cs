@@ -21,6 +21,9 @@ namespace UI
         [SerializeField]
         private Vector2 offset;
 
+        [SerializeField]
+        private Canvas canvas;
+
         private void Awake()
         {
             Instance = this;
@@ -32,7 +35,7 @@ namespace UI
             IsOpen = true;
             gameObject.SetActive(true);
             SpawnLocation = spawnLocation;
-            Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
+            Relocate();
             spawnLocation.GetComponent<TileHighlight>().Override = true;
             if (spawnLocation.Node)
             {
@@ -53,9 +56,11 @@ namespace UI
             gameObject.SetActive(false);
         }
 
-        private void Relocate(Vector2 pos)
+        private void Relocate()
         {
-            movableObject.GetComponent<RectTransform>().anchoredPosition = pos;
+            var scaleFactor = canvas.scaleFactor;
+            var mousePos = Input.mousePosition;
+            transform.localPosition = (mousePos - new Vector3(Screen.width, Screen.height) / 2f) / scaleFactor + new Vector3(offset.x, offset.y);
         }
     }
 }

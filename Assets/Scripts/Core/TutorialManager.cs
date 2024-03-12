@@ -40,7 +40,11 @@ namespace Core
                 sectionObjects[_currentSection].SetActive(false);
             }
 
-            sectionObjects[section].SetActive(true);
+            if (section >= 0)
+            {
+                sectionObjects[section].SetActive(true);
+            }
+
             _currentSection = section;
         }
 

@@ -248,6 +248,11 @@ namespace Core
             nameField.text = "";
             mainCanvas.SetActive(true);
             garageCanvas.SetActive(false);
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(7, 8);
+            }
         }
 
         public int CalculateCost()

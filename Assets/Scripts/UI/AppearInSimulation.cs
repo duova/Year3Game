@@ -9,6 +9,7 @@ namespace UI
         [SerializeField]
         private GameObject objectToChange;
 
+        /*
         private void FixedUpdate()
         {
             if (MatchManager.Instance.MatchState == MatchState.Simulation)
@@ -20,5 +21,6 @@ namespace UI
                 objectToChange.SetActive(false);
             }
         }
+        */
     }
 }

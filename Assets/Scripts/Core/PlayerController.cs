@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Entity.Module;
+using Entity.Structure;
 using Entity.Unit;
 using Terrain;
 using TMPro;
@@ -177,6 +178,10 @@ namespace Core
         public void Ready()
         {
             Actor.Ready();
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(10, -1);
+            }
         }
 
         private void Update()
@@ -294,6 +299,11 @@ namespace Core
                     if (!module) continue;
                     Actor.InstallModule(module, location.Entity.ModuleSlots[i], false);
                 }
+                
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(8, 9);
+                }
             }
         }
 
@@ -319,6 +329,14 @@ namespace Core
                 else
                 {
                     Actor.GiveOrder(OrderType.Follow, entity.gameObject, unit, true);
+                }
+                
+                if (entity && entity.TryGetComponent<Objective>(out _))
+                {
+                    if (TutorialManager.Instance)
+                    {
+                        TutorialManager.Instance.ConditionalGoToSection(9, 10);
+                    }
                 }
             }
             if (Selected.TryGetComponent(out Module module))
