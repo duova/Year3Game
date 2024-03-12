@@ -40,7 +40,7 @@ namespace UI
         {
             if (SpawnMenu.Instance.SpawnLocation != null) return;
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
-            if (GetComponent<SpawnLocation>().Actor == PlayerController.Instance.Actor || PlayerController.Instance.Selected != null)
+            if (GetComponent<SpawnLocation>().Actor == PlayerController.Instance.Actor || PlayerController.Instance.Selected != null || GetComponent<SpawnLocation>().Entity && GetComponent<SpawnLocation>().Entity.Actor == PlayerController.Instance.Actor)
             {
                 displayObject.SetActive(true);
             }

@@ -190,6 +190,7 @@ namespace Core
                     SpawnMenu.Instance.Close();
                 }
                 
+                /*
                 Cursor.visible = false;
                 Cursor.lockState = CursorLockMode.Locked;
                 
@@ -210,6 +211,7 @@ namespace Core
                 var yQuat = Quaternion.AngleAxis(_rotation.y, Vector3.left);
 
                 camTransform.rotation = xQuat * yQuat;
+                */
             }
             
             if (SelectedImage && _camera)
@@ -242,6 +244,7 @@ namespace Core
 
         public void MouseUp(Entity.Entity entity)
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
             
             if (EntityMenu.Instance.Entity == null && entity.Actor == Actor)
@@ -252,6 +255,7 @@ namespace Core
 
         public void MouseUp(SpawnLocation location)
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
 
             if (location.Node)
@@ -260,6 +264,11 @@ namespace Core
                 if (SpawnMenu.Instance.SpawnLocation == null && location.Actor == Actor)
                 {
                     SpawnMenu.Instance.Open(location);
+                }
+
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(0, 1);
                 }
 
             }
@@ -282,7 +291,7 @@ namespace Core
                 for (var i = 0; i < save.ModulePrefabs.Length; i++)
                 {
                     var module = save.ModulePrefabs[i];
-                    if (!module) return;
+                    if (!module) continue;
                     Actor.InstallModule(module, location.Entity.ModuleSlots[i], false);
                 }
             }
@@ -298,6 +307,7 @@ namespace Core
         
         public void RightMouseUp(Entity.Entity entity)
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (!Selected) return;
             if (Selected.TryGetComponent(out Unit unit) && !Actor.availableEntityPrefabs.Contains(Selected))
             {
@@ -330,6 +340,7 @@ namespace Core
 
         public void RightMouseUp(SpawnLocation location)
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (Selected && Selected.TryGetComponent(out Unit unit))
             {
                 Actor.GiveOrder(OrderType.Move, location.gameObject, unit, true);
@@ -340,6 +351,7 @@ namespace Core
 
         public void RightMouseDown(Entity.Entity entity)
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (Actor.availableEntityPrefabs.Contains(entity.gameObject)) return;
             if (entity.TryGetComponent<Unit>(out _) && entity.Actor == Actor)
             {

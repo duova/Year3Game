@@ -90,6 +90,14 @@ namespace Core
                 print("Drill can only be placed on a node.");
                 return false;
             }
+
+            if (prefabEntity.GetType() == typeof(Drill))
+            {
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(1, 2);
+                }
+            }
             if (!location.SpawnEntity(prefab)) return false;
             if (pay)
             {

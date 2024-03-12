@@ -57,8 +57,7 @@ namespace Terrain
             Entity = entity;
             var entityTransform = entity.transform;
             entityTransform.parent = transform;
-            entity.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            Entity.Actor = Actor;
+            entity.transform.SetLocalPositionAndRotation(Vector3.zero, entity.Actor == Actor ? Quaternion.identity : Quaternion.LookRotation(Vector3.back, Vector3.up));
             Entity.SpawnLocation = this;
             return true;
         }
@@ -119,6 +118,22 @@ namespace Terrain
                 {
                     PlayerController.Instance.RightMouseUp(Entity);
                 }
+            }
+        }
+
+        private void OnMouseEnter()
+        {
+            if (MatchManager.Instance.MatchState == MatchState.Strategy && Entity && Entity.TryGetComponent<Unit>(out var unit))
+            {
+                unit.OnMouseEnter();
+            }
+        }
+
+        private void OnMouseExit()
+        {
+            if (MatchManager.Instance.MatchState == MatchState.Strategy && Entity && Entity.TryGetComponent<Unit>(out var unit))
+            {
+                unit.OnMouseExit();
             }
         }
 

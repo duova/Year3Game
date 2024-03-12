@@ -241,12 +241,12 @@ MonoBehaviour:
 
     will win
     the game.'
-  maxHealth: 1000
+  maxHealth: 500
   internalPowerRating: 0
   healthBar: {fileID: 2569277046649814669}
   moduleArrowPrefab: {fileID: 0}
   damagePerSecond: 200
-  engagementRange: 5
+  engagementRange: 8
 --- !u!120 &6246526858697847545
 LineRenderer:
   serializedVersion: 2

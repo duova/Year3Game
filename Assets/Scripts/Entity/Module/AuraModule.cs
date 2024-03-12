@@ -26,5 +26,10 @@ namespace Entity.Module
         {
             return false;
         }
+
+        public override bool IsEngaged()
+        {
+            return false;
+        }
     }
 }

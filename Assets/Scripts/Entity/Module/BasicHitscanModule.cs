@@ -30,6 +30,11 @@ namespace Entity.Module
             return false;
         }
 
+        public override bool IsEngaged()
+        {
+            return Slot.Entity.IsInRange(_target, engagementRange);
+        }
+
         private void FixedUpdate()
         {
             if (MatchManager.Instance.MatchState != MatchState.Simulation) return;

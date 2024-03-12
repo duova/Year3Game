@@ -88,6 +88,8 @@ MonoBehaviour:
   LineRenderer: {fileID: 0}
   rightClickPrefab: {fileID: 519824148788449774, guid: 6102a34a0f15f824aba2979d0e84c43b,
     type: 3}
+  engagementRangeIndicatorPrefab: {fileID: 4750867591127323643, guid: 67f7f44d4eb765b4d96f1d1e16fae84b,
+    type: 3}
 --- !u!195 &2689512783775006155
 NavMeshAgent:
   m_ObjectHideFlags: 0

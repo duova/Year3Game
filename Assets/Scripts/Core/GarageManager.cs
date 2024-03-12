@@ -70,6 +70,12 @@ namespace Core
         
         [SerializeField]
         private GameObject buttonPrefab;
+        
+        [SerializeField]
+        private Canvas canvas;
+
+        [SerializeField]
+        private TMP_Text costDisplay;
 
         public bool inGarage;
 
@@ -127,6 +133,8 @@ namespace Core
             var transform1 = Camera.main.transform;
             transform1.position = cameraMarker.transform.position;
             transform1.rotation = cameraMarker.transform.rotation;
+            
+            costDisplay.text = "$0";
 
             if (EntitySaves[CurrentSaveSlotIndex].EntityPrefab)
             {
@@ -138,11 +146,14 @@ namespace Core
                     SelectModuleSlot(i);
                     SelectModule(prefab);
                 }
-
-                nameField.text = EntitySaves[CurrentSaveSlotIndex].Name;
             }
 
             UpdateGrids();
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(3, 4);
+            }
         }
 
         public void SelectEntity(GameObject prefab)
@@ -167,14 +178,22 @@ namespace Core
             for (var i = 0; i < spawnLocation.Entity.ModuleSlots.Length; i++)
             {
                 moduleSlotButtons[i].SetActive(true);
-                moduleSlotButtons[i].transform.localPosition =
-                    (Camera.main.WorldToScreenPoint(spawnLocation.Entity.ModuleSlots[i].transform.position) - new Vector3(Screen.width / 2f, Screen.height/2f)) * 2f;
+                var scaleFactor = canvas.scaleFactor;
+                var screenPos = Camera.main.WorldToScreenPoint(spawnLocation.Entity.ModuleSlots[i].transform.position);
+                moduleSlotButtons[i].transform.localPosition = (screenPos - new Vector3(Screen.width, Screen.height) / 2f) / scaleFactor;
             }
 
             _currentEntityPrefab = prefab;
             _currentModulePrefabs = new GameObject[spawnLocation.Entity.ModuleSlots.Length];
             SelectModuleSlot(0);
             spawnLocation.Entity.HideHealth();
+            costDisplay.text = "$" + CalculateCost();
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(4, 5);
+                TutorialManager.Instance.garageHoverText.gameObject.SetActive(false);
+            }
         }
 
         public void SelectModule(GameObject prefab)
@@ -189,6 +208,13 @@ namespace Core
             }
             slot.InstallModule(prefab);
             _currentModulePrefabs[SelectedModuleIndex] = prefab;
+            costDisplay.text = "$" + CalculateCost();
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(6, 7);
+                TutorialManager.Instance.garageHoverText.gameObject.SetActive(false);
+            }
         }
 
         //Auto save.
@@ -202,13 +228,7 @@ namespace Core
                 EntitySaves[CurrentSaveSlotIndex].Name = nameField.text;
                 EntitySaves[CurrentSaveSlotIndex].EntityPrefab = _currentEntityPrefab;
                 EntitySaves[CurrentSaveSlotIndex].ModulePrefabs = _currentModulePrefabs;
-                EntitySaves[CurrentSaveSlotIndex].Cost = 0;
-                EntitySaves[CurrentSaveSlotIndex].Cost += _currentEntityPrefab.GetComponent<Entity.Entity>().price;
-                foreach (var module in _currentModulePrefabs)
-                {
-                    if (!module) continue;
-                    EntitySaves[CurrentSaveSlotIndex].Cost += module.GetComponent<Module>().price;
-                }
+                EntitySaves[CurrentSaveSlotIndex].Cost = CalculateCost();
 
                 //Save screenshot.
                 _savingScreenshot = true;
@@ -230,14 +250,28 @@ namespace Core
             garageCanvas.SetActive(false);
         }
 
+        public int CalculateCost()
+        {
+            int cost = 0;
+            cost += _currentEntityPrefab.GetComponent<Entity.Entity>().price;
+            foreach (var module in _currentModulePrefabs)
+            {
+                if (!module) continue;
+                cost += module.GetComponent<Module>().price;
+            }
+
+            return cost;
+        }
+
         public void SelectModuleSlot(int index)
         {
             SelectedModuleIndex = index;
             foreach (var go in moduleSlotButtons)
             {
-                if (go.transform.childCount > 0)
+                foreach (var child in go.GetComponentsInChildren<Image>())
                 {
-                    go.transform.GetChild(0).gameObject.SetActive(false);
+                    if (child.gameObject == go) continue;
+                    child.enabled = false;
                 }
 
                 go.GetComponent<Image>().color = new Color(1, 1, 1, 0.7f);
@@ -246,11 +280,17 @@ namespace Core
             if (moduleSlotButtons.Length > index)
             {
                 var tf = moduleSlotButtons[index].transform;
-                if (tf.childCount > 0)
+                foreach (var child in tf.gameObject.GetComponentsInChildren<Image>())
                 {
-                    tf.GetChild(0).gameObject.SetActive(true);
+                    if (child.gameObject == tf.gameObject) continue;
+                    child.enabled = true;
                 }
                 moduleSlotButtons[index].GetComponent<Image>().color = new Color(1, 1, 1, 1);
+            }
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(5, 6);
             }
         }
         
@@ -340,15 +380,22 @@ namespace Core
 
                 if (CurrentSaveSlotIndex == i)
                 {
-                    foreach (var child in newGo.GetComponentsInChildren<Transform>())
+                    foreach (var child in newGo.GetComponentsInChildren<Image>())
                     {
-                        child.gameObject.SetActive(true);
+                        if (child.gameObject == newGo) continue;
+                        child.enabled = true;
                     }
 
                     imageComp.color = new Color(1, 1, 1, 1);
                 }
                 else
                 {
+                    foreach (var child in newGo.GetComponentsInChildren<Image>())
+                    {
+                        if (child.gameObject == newGo) continue;
+                        child.enabled = false;
+                    }
+                    
                     imageComp.color = new Color(1, 1, 1, 0.7f);
                 }
             }
@@ -359,6 +406,10 @@ namespace Core
             var index = SlotButtons.IndexOf(buttonComp);
             SetSaveSlotIndex(index);
             UpdateSlotMenu();
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(2, 3);
+            }
         }
         
         private void OnEnter(AddedEventsButton buttonComp)

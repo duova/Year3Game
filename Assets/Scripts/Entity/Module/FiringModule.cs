@@ -75,6 +75,11 @@ namespace Entity.Module
             return isAoE;
         }
 
+        public override bool IsEngaged()
+        {
+            return Slot.Entity.IsInRange(_target, engagementRange);
+        }
+
         private void Update()
         {
             _burstCooldown -= Time.deltaTime;

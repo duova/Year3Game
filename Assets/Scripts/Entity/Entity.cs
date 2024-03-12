@@ -5,6 +5,7 @@ using Core;
 using Entity.Module;
 using Terrain;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Entity
 {
@@ -101,18 +102,20 @@ namespace Entity
         public void AttachToClosest()
         {
             //Find closest spawn location that can accomodate.
-            var orderedLocations = Actor.SpawnLocations.OrderBy(location => (location.transform.position - transform.position).sqrMagnitude);
+            var orderedLocations = MatchManager.Instance.Actors.SelectMany(actor => actor.SpawnLocations).OrderBy(location => (location.transform.position - transform.position).sqrMagnitude);
             foreach (var location in orderedLocations)
             {
                 //Simply reset if the tile is the one it was on last turn.
                 if (location.Entity == this)
                 {
                     transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                    GetComponent<NavMeshAgent>().destination = transform.position;
                     return;
                 }
                 if (location.Entity) continue;
                 Detach();
                 location.SetEntity(this);
+                GetComponent<NavMeshAgent>().destination = transform.position;
                 return;
             }
             throw new Exception("No valid location to attach to.");
@@ -168,6 +171,7 @@ namespace Entity
             healthLocalScale = new Vector3(_initialHealthBarXScale * (Health / maxHealth), healthLocalScale.y, healthLocalScale.z);
             healthBar.transform.localScale = healthLocalScale;
 
+            /*
             if (moduleArrowPrefab != null && Actor == PlayerController.Instance.Actor)
             {
                 if (MatchManager.Instance.MatchState == MatchState.Simulation)
@@ -195,6 +199,7 @@ namespace Entity
                     }
                 }
             }
+            */
         }
     }
 }

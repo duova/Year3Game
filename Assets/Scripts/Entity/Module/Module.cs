@@ -27,5 +27,7 @@ namespace Entity.Module
 
         [SerializeField]
         public int weight;
+
+        public abstract bool IsEngaged();
     }
 }

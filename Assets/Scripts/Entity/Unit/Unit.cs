@@ -52,6 +52,11 @@ namespace Entity.Unit
 
         private GameObject rightClick;
 
+        [SerializeField]
+        private GameObject engagementRangeIndicatorPrefab;
+
+        private GameObject _spawnedRangeIndicator;
+
         protected override void Awake()
         {
             base.Awake();
@@ -138,8 +143,17 @@ namespace Entity.Unit
 
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
 
-            _agent.destination = Target ? Target.transform.position : transform.position;
+            bool engaged = ModuleSlots.Select(slot => slot.Module).Any(module => module && module.IsEngaged());
 
+            if (engaged)
+            {
+                _agent.destination = transform.position;
+            }
+            else
+            {
+                _agent.destination = Target ? Target.transform.position : transform.position;
+            }
+            
             //If the unit regains a target, we want to add it to the list again.
             if (Target)
             {
@@ -149,6 +163,7 @@ namespace Entity.Unit
                 }
             }
 
+            /*
             //Determine if closest spawn location is owned by the enemy.
             List<SpawnLocation> spawnLocations = new();
             foreach (var actor in MatchManager.Instance.Actors)
@@ -159,6 +174,7 @@ namespace Entity.Unit
             var orderedLocations = spawnLocations
                 .OrderBy(location => (location.transform.position - transform.position).sqrMagnitude).ToArray();
             _inEnemyTerritory = orderedLocations[0].Actor != Actor;
+            */
 
             //Rotate towards target.
             if (Target)
@@ -172,14 +188,13 @@ namespace Entity.Unit
             if (Target && Target.TryGetComponent<SpawnLocation>(out var spawnLocation) &&
                 spawnLocation.Actor != Actor &&
                 (Target.transform.position - transform.position).sqrMagnitude <= 2f * 2f) Target = null;
-
-            //Only retarget if the unit is stuck in enemy territory and has no existing target.
-            if (_inEnemyTerritory && !Target)
+            
+            //Only retarget if the unit has no existing target.
+            if (!Target)
             {
-                foreach (var actor in MatchManager.Instance.Actors)
+                if ((OrderedEnemyList[0].gameObject.transform.position - transform.position).sqrMagnitude <=
+                    engagementRange * engagementRange)
                 {
-                    if (actor == Actor) continue;
-                    if (actor.Entities.Count == 0) continue;
                     Target = OrderedEnemyList[0].gameObject;
                 }
             }
@@ -198,6 +213,9 @@ namespace Entity.Unit
                 //Or are really far away.
                 if ((Target.transform.position - transform.position).sqrMagnitude > 2f * 2f) return;
             }
+
+            //Never remove from active list if engaged.
+            if (engaged) return;
 
             //Remove it from the active list.
             if (MatchManager.Instance.ActiveUnits.Contains(this))
@@ -220,6 +238,22 @@ namespace Entity.Unit
             }
 
             base.Destroy();
+        }
+
+        public void OnMouseEnter()
+        {
+            if (GarageManager.Instance.inGarage) return;
+            _spawnedRangeIndicator = Instantiate(engagementRangeIndicatorPrefab, transform);
+            _spawnedRangeIndicator.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            _spawnedRangeIndicator.transform.localScale *= engagementRange;
+        }
+
+        public void OnMouseExit()
+        {
+            if (_spawnedRangeIndicator)
+            {
+                Destroy(_spawnedRangeIndicator);
+            }
         }
     }
 }
