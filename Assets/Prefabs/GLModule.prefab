@@ -82,8 +82,14 @@ MonoBehaviour:
   text: '-Grenade Launcher-
 
 
-    Cost: $20'
-  price: 20
+    Mid range, area of effect,
+
+    medium damage weapon.
+
+
+    Cost:
+    $10'
+  price: 10
   internalPowerRating: 1
   weight: 0
   slotType: 1

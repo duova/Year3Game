@@ -180,7 +180,7 @@ namespace Core
             Actor.Ready();
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(10, -1);
+                TutorialManager.Instance.EndTutorial();
             }
         }
 
@@ -262,6 +262,8 @@ namespace Core
         {
             if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
             if (EntityMenu.Instance.IsOpen || SpawnMenu.Instance.IsOpen) return;
+
+            if (location.Actor != Actor) return;
 
             if (location.Node)
             {

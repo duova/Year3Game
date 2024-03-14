@@ -241,7 +241,7 @@ MonoBehaviour:
 
     will win
     the game.'
-  maxHealth: 500
+  maxHealth: 600
   internalPowerRating: 0
   healthBar: {fileID: 2569277046649814669}
   moduleArrowPrefab: {fileID: 0}

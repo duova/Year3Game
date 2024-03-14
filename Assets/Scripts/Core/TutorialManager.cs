@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Core
 {
@@ -11,7 +12,7 @@ namespace Core
 
         [SerializeField]
         private GameObject[] sectionObjects;
-
+        
         private int _currentSection = -1;
 
         [SerializeField]
@@ -46,6 +47,15 @@ namespace Core
             }
 
             _currentSection = section;
+        }
+
+        public void EndTutorial()
+        {
+            _currentSection = 999;
+            foreach (var section in sectionObjects)
+            {
+                section.SetActive(false);
+            }
         }
 
         private void OnDestroy()

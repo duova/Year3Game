@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radius: 3
-  damage: 5
+  damage: 14
   areaIndicatorPrefab: {fileID: 4750867591127323643, guid: c287f0eb08330274b8000f0f24da3314,
     type: 3}
   indicatorDuration: 0.2
