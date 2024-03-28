@@ -55,12 +55,14 @@ namespace UI
 
         public void Open(Entity.Entity entity)
         {
+            /*
             IsOpen = true;
             gameObject.SetActive(true);
             Entity = entity;
             Relocate();
             infoText.text = entity.text;
             PresentSlots();
+            */
         }
         
         public void Close()
