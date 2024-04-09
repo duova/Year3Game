@@ -6,7 +6,9 @@ using Entity.Structure;
 using Entity.Unit;
 using Terrain;
 using UI;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Core
 {
@@ -33,6 +35,12 @@ namespace Core
         [SerializeField]
         private int currency;
 
+        [SerializeField]
+        public int maxCurrency = 100;
+
+        [SerializeField]
+        private GameObject placeVFXPrefab;
+
         public int Currency
         {
             get => currency;
@@ -42,7 +50,8 @@ namespace Core
                 {
                     DeductCurrencyText.Instance.Deduct(currency - value);
                 }
-                currency = value;
+
+                currency = Mathf.Min(value, maxCurrency);
             }
         }
 
@@ -59,6 +68,18 @@ namespace Core
         
         [SerializeField]
         private GameObject objectivePrefab;
+        
+        [SerializeField]
+        private GameObject drillPrefab;
+
+        [FormerlySerializedAs("defaultOrderColor")] [SerializeField]
+        private Material defaultOrderMat;
+        
+        [FormerlySerializedAs("followAllyOrderColor")] [SerializeField]
+        private Material followAllyOrderMat;
+        
+        [FormerlySerializedAs("followEnemyOrderColor")] [SerializeField]
+        private Material followEnemyOrderMat;
 
         private void Awake()
         {
@@ -72,6 +93,31 @@ namespace Core
             {
                 Objectives.Add(location.SpawnEntity(objectivePrefab).GetComponent<Objective>());
             }
+        }
+
+        public void ProcessUpkeep(int amount)
+        {
+            currency -= amount;
+            if (PlayerController.Instance.Actor == this)
+            {
+                PlayerController.Instance.upkeepThisRound += amount;
+            }
+        }
+
+        private void Start()
+        {
+            foreach (var location in SpawnLocations)
+            {
+                if (location.Node)
+                {
+                    location.SpawnEntity(drillPrefab);
+                }
+            }
+        }
+
+        public void BeginStrategy()
+        {
+            currency = Mathf.Max(currency, 0);
         }
 
         #region Controller Callable Actions
@@ -90,19 +136,17 @@ namespace Core
                 print("Drill can only be placed on a node.");
                 return false;
             }
-
-            if (prefabEntity.GetType() == typeof(Drill))
-            {
-                if (TutorialManager.Instance)
-                {
-                    TutorialManager.Instance.ConditionalGoToSection(1, 2);
-                }
-            }
             if (!location.SpawnEntity(prefab)) return false;
             if (pay)
             {
                 Currency -= prefabEntity.price;
             }
+
+            if (!GarageManager.Instance.inGarage)
+            {
+                Destroy(Instantiate(placeVFXPrefab, location.Entity.transform.position, Quaternion.identity), 2f);
+            }
+
             return true;
         }
 
@@ -136,14 +180,31 @@ namespace Core
 
         public bool GiveOrder(OrderType orderType, GameObject target, Unit unit, bool drawLine)
         {
+            Entity.Entity targetEntity = null;
+            var material = defaultOrderMat;
             if (!unit || !target) return false;
             if (orderType == OrderType.Move && !target.TryGetComponent<SpawnLocation>(out _)) return false;
-            if (orderType == OrderType.Follow && !target.TryGetComponent<Entity.Entity>(out _)) return false;
+            if (orderType == OrderType.Follow && !target.TryGetComponent(out targetEntity)) return false;
+            if (orderType == OrderType.Follow && targetEntity == unit) orderType = OrderType.Stay;
+            if (orderType == OrderType.Stay) target = null;
             unit.Order = new UnitOrder { OrderType = orderType, Target = target };
             if (drawLine)
             {
                 unit.LineRenderer.positionCount = 2;
-                unit.LineRenderer.SetPositions(new[] { unit.transform.position, target.transform.position });
+                unit.LineRenderer.SetPositions(new[] { unit.transform.position, target ? target.transform.position : unit.transform.position });
+                if (orderType == OrderType.Follow)
+                {
+                    if (targetEntity && targetEntity.Actor == this)
+                    {
+                        material = followAllyOrderMat;
+                    }
+                    else
+                    {
+                        material = followEnemyOrderMat;
+                    }
+                }
+
+                unit.LineRenderer.material = material;
             }
             return true;
         }
