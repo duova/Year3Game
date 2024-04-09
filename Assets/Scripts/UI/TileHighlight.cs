@@ -36,17 +36,14 @@ namespace UI
             }
         }
 
-        private void OnMouseEnter()
+        public void OnMouseEnter()
         {
             if (SpawnMenu.Instance.SpawnLocation != null) return;
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
-            if (GetComponent<SpawnLocation>().Actor == PlayerController.Instance.Actor || PlayerController.Instance.Selected != null || GetComponent<SpawnLocation>().Entity && GetComponent<SpawnLocation>().Entity.Actor == PlayerController.Instance.Actor)
-            {
-                displayObject.SetActive(true);
-            }
+            displayObject.SetActive(true);
         }
 
-        private void OnMouseExit()
+        public void OnMouseExit()
         {
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
             if (_override) return;

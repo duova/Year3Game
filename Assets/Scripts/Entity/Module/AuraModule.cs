@@ -31,5 +31,10 @@ namespace Entity.Module
         {
             return false;
         }
+
+        public override float GetRange()
+        {
+            return 0;
+        }
     }
 }

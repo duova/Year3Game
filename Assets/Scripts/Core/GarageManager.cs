@@ -77,6 +77,12 @@ namespace Core
         [SerializeField]
         private TMP_Text costDisplay;
 
+        [SerializeField]
+        private Light sun;
+
+        [SerializeField]
+        private HoverText garageHoverText;
+
         public bool inGarage;
 
         public int CurrentSaveSlotIndex { get; private set; }
@@ -88,6 +94,12 @@ namespace Core
         private GameObject[] _currentModulePrefabs;
 
         private bool _savingScreenshot;
+
+        [SerializeField]
+        private float spawnOffset;
+
+        [SerializeField]
+        private float fadeTime;
 
         public List<AddedEventsButton> SlotButtons { get; private set; } = new ();
 
@@ -121,11 +133,38 @@ namespace Core
         public void SetSaveSlotIndex(int saveIndex)
         {
             CurrentSaveSlotIndex = saveIndex;
+            if (saveIndex > 0)
+            {
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(21, 22);
+                }
+            }
+
+            if (saveIndex == 0)
+            {
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(27, 28);
+                }
+            }
         }
 
         public void GoToGarage()
         {
             if (MatchManager.Instance.MatchState != MatchState.Strategy) return;
+            if (ScreenFade.Instance)
+            {
+                ScreenFade.Instance.FadeOut(fadeTime, InternalGoToGarage);
+            }
+            else
+            {
+                InternalGoToGarage();
+            }
+        }
+
+        private void InternalGoToGarage()
+        {
             mainCanvas.SetActive(false);
             garageCanvas.SetActive(true);
             inGarage = true;
@@ -146,13 +185,25 @@ namespace Core
                     SelectModuleSlot(i);
                     SelectModule(prefab);
                 }
+
+                nameField.text = EntitySaves[CurrentSaveSlotIndex].Name;
             }
 
             UpdateGrids();
+
+            sun.enabled = false;
+            
+            SelectModuleSlot(0);
             
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(3, 4);
+                TutorialManager.Instance.ConditionalGoToSection(22, 23);
+                TutorialManager.Instance.ConditionalGoToSection(28, 29);
+            }
+
+            if (ScreenFade.Instance)
+            {
+                ScreenFade.Instance.FadeIn(fadeTime);
             }
         }
 
@@ -188,11 +239,16 @@ namespace Core
             SelectModuleSlot(0);
             spawnLocation.Entity.HideHealth();
             costDisplay.text = "$" + CalculateCost();
+
+            if (spawnLocation.Entity.TryGetComponent<NavMeshAgent>(out var agent)) {
+                spawnLocation.Entity.transform.localPosition = Vector3.back * spawnOffset;
+                agent.destination = spawnLocation.transform.position;
+            }
             
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(4, 5);
-                TutorialManager.Instance.garageHoverText.gameObject.SetActive(false);
+                garageHoverText.Deactivate();
+                TutorialManager.Instance.ConditionalGoToSection(23, 24);
             }
         }
 
@@ -212,8 +268,9 @@ namespace Core
             
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(6, 7);
-                TutorialManager.Instance.garageHoverText.gameObject.SetActive(false);
+                garageHoverText.Deactivate();
+                TutorialManager.Instance.ConditionalGoToSection(25, 26);
+                TutorialManager.Instance.ConditionalGoToSection(30, 31);
             }
         }
 
@@ -222,6 +279,18 @@ namespace Core
         {
             if (_savingScreenshot) return;
             
+            if (ScreenFade.Instance)
+            {
+                ScreenFade.Instance.FadeOut(fadeTime, InternalLeaveGarage);
+            }
+            else
+            {
+                InternalLeaveGarage();
+            }
+        }
+
+        private void InternalLeaveGarage()
+        {
             if (_currentEntityPrefab)
             {
                 //Save data.
@@ -248,10 +317,28 @@ namespace Core
             nameField.text = "";
             mainCanvas.SetActive(true);
             garageCanvas.SetActive(false);
+            foreach (var button in moduleSlotButtons)
+            {
+                button.SetActive(false);
+            }
+            
+            sun.enabled = true;
+            
+            PlayerController.Instance.ResetCamera();
             
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(7, 8);
+                TutorialManager.Instance.ConditionalGoToSection(26, 27);
+                if (TutorialManager.Instance.GetSection() == 31)
+                {
+                    PlayerController.Instance.Actor.Currency += 500;
+                }
+                TutorialManager.Instance.ConditionalGoToSection(31, 32);
+            }
+
+            if (ScreenFade.Instance)
+            {
+                ScreenFade.Instance.FadeIn(fadeTime);
             }
         }
 
@@ -295,7 +382,11 @@ namespace Core
             
             if (TutorialManager.Instance)
             {
-                TutorialManager.Instance.ConditionalGoToSection(5, 6);
+                TutorialManager.Instance.ConditionalGoToSection(24, 25);
+                if (index == 1)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(29, 30);
+                }
             }
         }
         
@@ -411,10 +502,6 @@ namespace Core
             var index = SlotButtons.IndexOf(buttonComp);
             SetSaveSlotIndex(index);
             UpdateSlotMenu();
-            if (TutorialManager.Instance)
-            {
-                TutorialManager.Instance.ConditionalGoToSection(2, 3);
-            }
         }
         
         private void OnEnter(AddedEventsButton buttonComp)

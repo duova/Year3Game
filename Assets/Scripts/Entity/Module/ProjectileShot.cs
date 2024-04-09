@@ -1,4 +1,5 @@
 ﻿using System;
+using Core;
 using UnityEngine;
 
 namespace Entity.Module
@@ -62,6 +63,14 @@ namespace Entity.Module
 
             //Destroy if not hit anything.
             Destroy(gameObject, 15f);
+        }
+
+        private void Update()
+        {
+            if (MatchManager.Instance.MatchState == MatchState.Strategy)
+            {
+                Destroy(gameObject);
+            }
         }
 
         private void OnTriggerEnter(Collider other)

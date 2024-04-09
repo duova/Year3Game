@@ -16,10 +16,16 @@ namespace UI
 
         [SerializeField] private Canvas canvas;
 
+        private AnimatedBox _animatedBox;
+
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
-            gameObject.SetActive(false);
+            TryGetComponent(out _animatedBox);
+            if (!_animatedBox)
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         private void SetText(string text)
@@ -31,12 +37,26 @@ namespace UI
         { 
             Relocate();
             SetText(text);
-            gameObject.SetActive(true);
+            if (_animatedBox)
+            {
+                _animatedBox.Open();
+            }
+            else
+            {
+                gameObject.SetActive(true);
+            }
         }
         
         public void Deactivate()
         {
-            gameObject.SetActive(false);
+            if (_animatedBox)
+            {
+                _animatedBox.Close();
+            }
+            else
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         private void Update()

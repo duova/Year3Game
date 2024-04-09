@@ -33,12 +33,13 @@ namespace UI
 
         public void Open(ModuleSlot slot)
         {
-            return;
+            /*
             IsOpen = true;
             gameObject.SetActive(true);
             ModuleSlot = slot;
             Relocate((Vector2)Input.mousePosition - new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) + offset);
             moduleMenuLoader.UpdateCategory(PlayerController.Instance.Actor.availableModulePrefabs.ToArray(), false);
+            */
         }
         
         public void Close()

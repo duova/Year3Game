@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Core;
 using Entity.Unit;
 using Unity.Mathematics;
@@ -31,6 +32,10 @@ namespace Terrain
 
         [SerializeField]
         private float drillCost = 10;
+
+        private MeshRenderer[] _renderers;
+
+        private bool _hidden;
 
         //Returns whether the spawn was successful.
         public GameObject SpawnEntity(GameObject prefab)
@@ -70,7 +75,7 @@ namespace Terrain
             Entity = null;
         }
         
-        private void OnMouseOver()
+        public void OnMouseOver()
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -119,32 +124,66 @@ namespace Terrain
                     PlayerController.Instance.RightMouseUp(Entity);
                 }
             }
-        }
-
-        private void OnMouseEnter()
-        {
-            if (MatchManager.Instance.MatchState == MatchState.Strategy && Entity && Entity.TryGetComponent<Unit>(out var unit))
+            
+            if (!Entity)
             {
-                unit.OnMouseEnter();
+                PlayerController.Instance.Hover(this);
+            }
+            else
+            {
+                PlayerController.Instance.Hover(Entity);
             }
         }
 
-        private void OnMouseExit()
+        private void Awake()
         {
-            if (MatchManager.Instance.MatchState == MatchState.Strategy && Entity && Entity.TryGetComponent<Unit>(out var unit))
-            {
-                unit.OnMouseExit();
-            }
+            _renderers = GetComponentsInChildren<MeshRenderer>();
         }
 
         private void Start()
         {
+            var baseVisualObjects = GetComponentsInChildren<Transform>().Select(tf => tf.gameObject).Where(go => go.name == "Base").ToArray();
+            if (baseVisualObjects.Any())
+            {
+                Material mat;
+                if (side == Side.Home)
+                {
+                    mat = MatchManager.Instance.HomeColor == TeamColor.Blue
+                        ? MatchManager.Instance.BlueMaterial
+                        : MatchManager.Instance.OrangeMaterial;
+                }
+                else
+                {
+                    mat = MatchManager.Instance.AwayColor == TeamColor.Blue
+                        ? MatchManager.Instance.BlueMaterial
+                        : MatchManager.Instance.OrangeMaterial;
+                }
+                baseVisualObjects[0].GetComponent<MeshRenderer>().material = mat;
+            }
+            
             if (!drillArrow) return;
             _arrowRenderer = drillArrow.GetComponent<SpriteRenderer>();
         }
 
         private void Update()
         {
+            if (MatchManager.Instance.MatchState == MatchState.Simulation)
+            {
+                if (!_hidden)
+                {
+                    HideVisual();
+                    _hidden = true;
+                }
+            }
+            else
+            {
+                if (_hidden)
+                {
+                    ShowVisual();
+                    _hidden = false;
+                }
+            }
+            
             if (!drillArrow) return;
             _arrowRenderer.enabled = false;
             if (MatchManager.Instance.MatchState == MatchState.Simulation) return;
@@ -152,6 +191,22 @@ namespace Terrain
             if (Entity) return;
             if (PlayerController.Instance.Actor.Currency < drillCost) return;
             _arrowRenderer.enabled = true;
+        }
+
+        private void HideVisual()
+        {
+            foreach (var rdr in _renderers)
+            {
+                rdr.enabled = false;
+            }
+        }
+
+        private void ShowVisual()
+        {
+            foreach (var rdr in _renderers)
+            {
+                rdr.enabled = true;
+            }
         }
     }
 }

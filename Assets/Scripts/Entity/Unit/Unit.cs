@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Core;
+using Effects;
 using Entity.Module;
 using Terrain;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 namespace Entity.Unit
 {
@@ -34,6 +35,7 @@ namespace Entity.Unit
     {
         [field: SerializeField] public UnitOrder Order { get; set; }
 
+        [field: SerializeField]
         public GameObject Target { get; private set; }
 
         private NavMeshAgent _agent;
@@ -57,6 +59,25 @@ namespace Entity.Unit
 
         private GameObject _spawnedRangeIndicator;
 
+        [SerializeField]
+        private string walkAnimationBool;
+
+        private Animator _animator;
+
+        private Vector3 _lastPos;
+
+        [SerializeField]
+        private float rangeIndicatorOffset = 5f;
+
+        private bool _moving;
+
+        private int _framesWithoutMoving;
+        
+        [SerializeField]
+        private int unitUpkeep = 2;
+
+        private IMoveEffect _moveEffect;
+
         protected override void Awake()
         {
             base.Awake();
@@ -68,6 +89,13 @@ namespace Entity.Unit
             _originalSpeed = _agent.speed;
 
             LineRenderer = GetComponent<LineRenderer>();
+
+            if (!string.IsNullOrEmpty(walkAnimationBool))
+            {
+                _animator = GetComponentInChildren<Animator>();
+            }
+
+            TryGetComponent(out _moveEffect);
         }
 
         public override void BeginSimulation()
@@ -77,10 +105,6 @@ namespace Entity.Unit
             if (Order.OrderType is OrderType.Move or OrderType.Follow)
             {
                 Target = Order.Target;
-            }
-            else
-            {
-                Target = null;
             }
 
             if (!MatchManager.Instance.ActiveUnits.Contains(this))
@@ -98,9 +122,23 @@ namespace Entity.Unit
 
         public override void EndSimulation()
         {
+            if (_animator)
+            {
+                _animator.SetBool(walkAnimationBool, false);
+            }
             Target = null;
             Order = default;
             AttachToClosest();
+            
+            Actor.ProcessUpkeep(unitUpkeep);
+        }
+
+        private void Update()
+        {
+            if (_moveEffect != null && _moving)
+            {
+                _moveEffect.MoveTick();
+            }
         }
 
         protected override void FixedUpdate()
@@ -108,6 +146,37 @@ namespace Entity.Unit
             base.FixedUpdate();
 
             if (SimulationTicker) return;
+            
+            if ((_lastPos - transform.position).sqrMagnitude > 0.01f)
+            {
+                if (_animator)
+                {
+                    _animator.SetBool(walkAnimationBool, true);
+                }
+
+                if (_moveEffect != null && !_moving)
+                {
+                    _moveEffect.BeginMove();
+                }
+                
+                _moving = true;
+            }
+            else
+            {
+                if (_animator)
+                {
+                    _animator.SetBool(walkAnimationBool, false);
+                }
+
+                if (_moveEffect != null && _moving)
+                {
+                    _moveEffect.EndMove();
+                }
+                
+                _moving = false;
+            }
+            
+            _lastPos = transform.position;
 
             if (GarageManager.Instance.inGarage) return;
 
@@ -144,9 +213,13 @@ namespace Entity.Unit
             if (MatchManager.Instance.MatchState == MatchState.Strategy) return;
 
             bool engaged = ModuleSlots.Select(slot => slot.Module).Any(module => module && module.IsEngaged());
-
+            
             if (engaged)
             {
+                if (TutorialManager.Instance)
+                {
+                    TutorialManager.Instance.ConditionalGoToSection(7, 8);
+                }
                 _agent.destination = transform.position;
             }
             else
@@ -184,11 +257,43 @@ namespace Entity.Unit
                     rotateSpeed / 30f);
             }
 
-            //Clear target if it is a spawn location owned by the enemy and the unit has arrived.
-            if (Target && Target.TryGetComponent<SpawnLocation>(out var spawnLocation) &&
-                spawnLocation.Actor != Actor &&
-                (Target.transform.position - transform.position).sqrMagnitude <= 2f * 2f) Target = null;
-            
+            if (Target)
+            {
+                Target.TryGetComponent<Entity>(out var entity);
+
+                //Clear target if it has no health.
+                if (entity && entity.Health < 0.01f) Target = null;
+
+                //Clear target if it is a spawn location and the unit has arrived.
+                if (Target != null &&
+                    Target.TryGetComponent<SpawnLocation>(out _) &&
+                    (Target.transform.position - transform.position).sqrMagnitude <= 9f * 9f) Target = null;
+
+                //Clear target if it is a entity and the unit has arrived.
+                if (Target != null && entity && entity.GetType() != typeof(Unit) &&
+                    (Target.transform.position - transform.position).sqrMagnitude <= 15f * 15f) Target = null;
+
+                //Clear target if it is an inactive unit and the unit has arrived.
+                if (Target != null && Target.TryGetComponent<Unit>(out var unit) && !unit.Target &&
+                    (Target.transform.position - transform.position).sqrMagnitude <= 15f * 15f) Target = null;
+
+                //Prevent being locked in simulation.
+                if (!engaged && !_moving)
+                {
+                    _framesWithoutMoving++;
+                }
+                else
+                {
+                    _framesWithoutMoving = 0;
+                }
+
+                if (_framesWithoutMoving > 90)
+                {
+                    Target = null;
+                }
+            }
+
+            /*
             //Only retarget if the unit has no existing target.
             if (!Target)
             {
@@ -198,7 +303,9 @@ namespace Entity.Unit
                     Target = OrderedEnemyList[0].gameObject;
                 }
             }
+            */
 
+            /*
             //If target isn't null we have to check if it can still path.
             if (Target != null)
             {
@@ -211,8 +318,11 @@ namespace Entity.Unit
                 }
 
                 //Or are really far away.
-                if ((Target.transform.position - transform.position).sqrMagnitude > 2f * 2f) return;
+                if ((Target.transform.position - transform.position).sqrMagnitude > 9f * 9f) return;
             }
+            */
+
+            if (Target) return;
 
             //Never remove from active list if engaged.
             if (engaged) return;
@@ -240,16 +350,18 @@ namespace Entity.Unit
             base.Destroy();
         }
 
-        public void OnMouseEnter()
+        protected override void OnMouseEnter()
         {
+            base.OnMouseEnter();
             if (GarageManager.Instance.inGarage) return;
             _spawnedRangeIndicator = Instantiate(engagementRangeIndicatorPrefab, transform);
-            _spawnedRangeIndicator.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            _spawnedRangeIndicator.transform.localScale *= engagementRange;
+            _spawnedRangeIndicator.transform.SetLocalPositionAndRotation(Vector3.zero + Vector3.down * rangeIndicatorOffset, Quaternion.identity);
+            _spawnedRangeIndicator.transform.localScale *= ModuleSlots.Select(slot => slot.Module).Max(module => module ? module.GetRange() : 0);
         }
 
-        public void OnMouseExit()
+        protected override void OnMouseExit()
         {
+            base.OnMouseExit();
             if (_spawnedRangeIndicator)
             {
                 Destroy(_spawnedRangeIndicator);

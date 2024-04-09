@@ -101,17 +101,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f077481cca1453aa90097f931da4a7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <SpawnLocation>k__BackingField: {fileID: 0}
   price: 10
   image: {fileID: 21300000, guid: cf396185caf7b38428deb9c913e28164, type: 3}
+  text: 
   maxHealth: 10
   internalPowerRating: 1
   healthBar: {fileID: 2056316295046057796}
+  moduleArrowPrefab: {fileID: 0}
   <Order>k__BackingField:
     OrderType: 0
     Target: {fileID: 0}
-  engagementRange: 5
+  engagementRange: 50
   rotateSpeed: 360
   LineRenderer: {fileID: 0}
+  rightClickPrefab: {fileID: 0}
+  engagementRangeIndicatorPrefab: {fileID: 0}
 --- !u!195 &2689512783775006155
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -122,8 +127,8 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: -1372625422
   m_Radius: 0.5
-  m_Speed: 1
-  m_Acceleration: 8
+  m_Speed: 10
+  m_Acceleration: 80
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
@@ -146,8 +151,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d75789012d304574bd549e7314821e05, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  homeMaterial: {fileID: 2100000, guid: 92cc1a6fb3a330c42874769fb21d6273, type: 2}
-  awayMaterial: {fileID: 2100000, guid: f99d186d5dc52a94fa21b429f78c1d8c, type: 2}
+  blueMaterial: {fileID: 0}
+  orangeMaterial: {fileID: 0}
+  renderersToSkip: []
 --- !u!120 &2848056243022228229
 LineRenderer:
   serializedVersion: 2

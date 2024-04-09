@@ -35,6 +35,11 @@ namespace Entity.Module
             return Slot.Entity.IsInRange(_target, engagementRange);
         }
 
+        public override float GetRange()
+        {
+            return engagementRange;
+        }
+
         private void FixedUpdate()
         {
             if (MatchManager.Instance.MatchState != MatchState.Simulation) return;

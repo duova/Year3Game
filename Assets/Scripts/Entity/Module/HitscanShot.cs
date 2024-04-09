@@ -1,4 +1,5 @@
 ﻿using System;
+using Core;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.VFX;
@@ -26,6 +27,9 @@ namespace Entity.Module
 
         private float _travelTime;
 
+        [SerializeField]
+        private GameObject hitVFXPrefab;
+
         private void Start()
         {
             if (velocity == 0) velocity = 1;
@@ -35,19 +39,36 @@ namespace Entity.Module
             var distance = (Target.transform.position - transform.position).magnitude;
 
             var distanceAttribute = shotVfx.CreateVFXEventAttribute();
-            distanceAttribute.SetFloat("distance", distance);
+            shotVfx.SetFloat("distance", distance);
             
             var velocityAttribute = shotVfx.CreateVFXEventAttribute();
-            velocityAttribute.SetFloat("velocity", velocity);
+            shotVfx.SetFloat("velocity", velocity);
 
             _travelTime = distance / velocity;
         }
 
         private void Update()
         {
+            if (MatchManager.Instance.MatchState == MatchState.Strategy)
+            {
+                Destroy(gameObject);
+            }
+            
             _travelTime -= Time.deltaTime;
             if (_travelTime < 0)
             {
+                if (Target)
+                {
+                    Target.GetComponent<Collider>()
+                        .Raycast(new Ray(transform.position, Target.transform.position - transform.position),
+                            out var hitInfo, 100f);
+                    
+                    if (hitInfo.collider)
+                    {
+                        Destroy(Instantiate(hitVFXPrefab, hitInfo.point, Quaternion.identity), 1f);
+                    }
+                }
+                
                 if (Target)
                 {
                     Target.AddHealth(-damage);

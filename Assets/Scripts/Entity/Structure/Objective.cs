@@ -41,26 +41,23 @@ namespace Entity.Structure
             _lineRenderer = GetComponent<LineRenderer>();
         }
 
-        protected override void FixedUpdate()
+        protected void Update()
         {
-            base.FixedUpdate();
-            
             _lineRenderer.positionCount = 0;
             
             if (MatchManager.Instance.MatchState != MatchState.Simulation) return;
-            
-            //Only run on every other physics update to reduce lag from querying on tick.
-            _simulationTicker = !_simulationTicker;
-            
-            if (_simulationTicker) return;
 
             _target = OrderedEnemyList.Count > 0 ? OrderedEnemyList[0] : null;
 
             if (!IsInRange(_target, engagementRange)) return;
             if (!_target) return;
-            _target.AddHealth(-damagePerSecond / 30f);
+            _target.AddHealth(-damagePerSecond * Time.deltaTime);
             _lineRenderer.positionCount = 2;
             _lineRenderer.SetPositions(new []{transform.position, _target.transform.position});
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(11, 12);
+            }
         }
     }
 }

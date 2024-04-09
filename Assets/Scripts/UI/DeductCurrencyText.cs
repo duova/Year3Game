@@ -46,7 +46,7 @@ namespace UI
 
         private void Update()
         {
-            _timeSinceDeduction += Time.deltaTime;
+            _timeSinceDeduction += Time.unscaledDeltaTime;
             transform.localPosition =
                 _pos - new Vector3(Screen.width / 2f, Screen.height / 2f) + offset + new Vector3(0, _timeSinceDeduction * upwardsMultiplier);
             var color = _textComp.color;

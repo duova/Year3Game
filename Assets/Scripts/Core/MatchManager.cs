@@ -4,6 +4,7 @@ using Entity.Structure;
 using Entity.Unit;
 using Terrain;
 using TMPro;
+using UI;
 using UnityEngine;
 
 namespace Core
@@ -12,6 +13,12 @@ namespace Core
     {
         Strategy,
         Simulation
+    }
+
+    public enum TeamColor
+    {
+        Orange,
+        Blue
     }
     
     public class MatchManager : MonoBehaviour
@@ -42,6 +49,16 @@ namespace Core
 
         public List<Actor> ReadyActors { get; set; } = new();
 
+        [field: SerializeField]
+        public Material OrangeMaterial { get; private set; }
+
+        [field: SerializeField]
+        public Material BlueMaterial { get; private set; }
+
+        public TeamColor HomeColor { get; set; } = TeamColor.Orange;
+
+        public TeamColor AwayColor { get; set; } = TeamColor.Blue;
+
         private void Awake()
         {
             Instance = this;
@@ -50,7 +67,7 @@ namespace Core
 
         private void Start()
         {
-            BeginStratergy();
+            BeginStrategy();
         }
 
         private void Update()
@@ -68,12 +85,16 @@ namespace Core
                 //Only stop simulation if out of time or no more units are active.
                 if (RemainingStateTime >= 0 && ActiveUnits.Count > 0) return;
                 EndSimulation();
-                BeginStratergy();
+                BeginStrategy();
             }
         }
 
-        private void BeginStratergy()
+        private void BeginStrategy()
         {
+            foreach (var actor in Actors)
+            {
+                actor.BeginStrategy();
+            }
             RemainingStateTime = maxStratergyTime;
             MatchState = MatchState.Strategy;
             ReadyActors.Clear();
@@ -81,7 +102,7 @@ namespace Core
 
         private void EndStrategy()
         {
-            
+            PlayerController.Instance.ClearSelectedUnits();
         }
 
         private void BeginSimulation()
@@ -95,6 +116,11 @@ namespace Core
                     entity.BeginSimulation();
                 }
             }
+            
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.OnSimulationStart();
+            }
         }
 
         private void EndSimulation()
@@ -106,16 +132,28 @@ namespace Core
                 {
                     entity.EndSimulation();
                     //Heal all entities after simulation.
-                    if (entity.GetType() != typeof(Objective))
+                    if (entity.GetType() != typeof(Objective) && !(entity.GetType() == typeof(Drill) && ((Drill)entity).roundsDisabled > 0))
                     {
                         entity.SetHealth(entity.MaxHealth);
                     }
                 }
             }
+
+            if (PlayerController.Instance)
+            {
+                PlayerController.Instance.OnSimulationEnd();
+            }
+            
+            if (TutorialManager.Instance)
+            {
+                TutorialManager.Instance.ConditionalGoToSection(13, 14);
+                TutorialManager.Instance.ConditionalGoToSection(19, 20);
+            }
         }
 
         public void EndGame(bool won)
         {
+            MatchState = MatchState.Strategy;
             endText.text = won ? "WIN" : "LOSE";
         }
     }

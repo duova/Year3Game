@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Entity.Module;
+using Entity.Structure;
 using Terrain;
+using UI;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -51,6 +53,11 @@ namespace Entity
 
         private GameObject moduleArrow;
 
+        protected bool DestroyDisabled = false;
+
+        [SerializeField]
+        private GameObject deathVFXPrefab;
+
         protected virtual void Awake()
         {
             ModuleSlots = GetComponentsInChildren<ModuleSlot>();
@@ -73,9 +80,20 @@ namespace Entity
             {
                 newHealth = MaxHealth;
             }
+            if (newHealth < 0f)
+            {
+                newHealth = 0f;
+            }
             Health = newHealth;
             if (Health > 0f) return;
+            if (DestroyDisabled) return;
             //Play destroy effects.
+
+            if (deathVFXPrefab)
+            {
+                Destroy(Instantiate(deathVFXPrefab, transform.position, Quaternion.identity), 2f);
+            }
+            
             Destroy();
         }
 
@@ -137,6 +155,7 @@ namespace Entity
         public void HideHealth()
         {
             healthBar.SetActive(false);
+            healthBar.transform.parent.gameObject.SetActive(false);
         }
 
         public abstract void BeginSimulation();
@@ -163,8 +182,9 @@ namespace Entity
             {
                 if (actor == Actor) continue;
                 if (actor.Entities.Count == 0) continue;
-                OrderedEnemyList = actor.Entities
-                    .OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList();
+                OrderedEnemyList.Clear();
+                OrderedEnemyList.AddRange(actor.Entities.Where(entity => entity.GetType() != typeof(Drill) || ((Drill)entity).roundsDisabled < 1)
+                    .OrderBy(entity => (entity.transform.position - transform.position).sqrMagnitude).ToList());
             }
 
             var healthLocalScale = healthBar.transform.localScale;
@@ -200,6 +220,31 @@ namespace Entity
                 }
             }
             */
+        }
+        
+        private void OnMouseOver()
+        {
+            SpawnLocation.OnMouseOver();
+        }
+
+        protected virtual void OnMouseEnter()
+        {
+            if (SpawnLocation && SpawnLocation.TryGetComponent<TileHighlight>(out var highlight))
+            {
+                highlight.OnMouseEnter();
+            }
+            
+            PlayerController.Instance.MouseEnter(this);
+        }
+
+        protected virtual void OnMouseExit()
+        {
+            if (SpawnLocation && SpawnLocation.TryGetComponent<TileHighlight>(out var highlight))
+            {
+                highlight.OnMouseExit();
+            }
+            
+            PlayerController.Instance.MouseExit(this);
         }
     }
 }

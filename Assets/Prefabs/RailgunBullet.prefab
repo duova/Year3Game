@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 8805736248753265887}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -52,10 +52,10 @@ VisualEffect:
   m_PropertySheet:
     m_Float:
       m_Array:
-      - m_Value: 10
+      - m_Value: 1
         m_Name: distance
         m_Overridden: 1
-      - m_Value: 20
+      - m_Value: 200
         m_Name: velocity
         m_Overridden: 1
     m_Vector2f:
@@ -64,7 +64,7 @@ VisualEffect:
       m_Array: []
     m_Vector4f:
       m_Array:
-      - m_Value: {x: 0, y: 83.60401, z: 103.9401, w: 1}
+      - m_Value: {x: 103.94011, y: 0.000009912502, z: 0, w: 1}
         m_Name: bulletColor
         m_Overridden: 1
     m_Uint:
@@ -140,4 +140,6 @@ MonoBehaviour:
   shotVfx: {fileID: 7835295875605775256}
   damage: 20
   lifesteal: 0
-  velocity: 20
+  velocity: 200
+  hitVFXPrefab: {fileID: 1025285306637258, guid: d84546a6bccb0d24a9eee1287d316d87,
+    type: 3}

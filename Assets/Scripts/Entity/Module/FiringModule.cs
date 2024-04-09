@@ -77,7 +77,16 @@ namespace Entity.Module
 
         public override bool IsEngaged()
         {
+            if (Slot && Slot.Entity && Slot.Entity.OrderedEnemyList.Count > 0)
+            {
+                _target = Slot.Entity.OrderedEnemyList[0];
+            }
             return Slot.Entity.IsInRange(_target, engagementRange);
+        }
+
+        public override float GetRange()
+        {
+            return engagementRange;
         }
 
         private void Update()
@@ -104,7 +113,10 @@ namespace Entity.Module
             
             if (_simulationTicker) return;
 
-            _target = Slot.Entity.OrderedEnemyList[0];
+            if (Slot && Slot.Entity && Slot.Entity.OrderedEnemyList.Count > 0)
+            {
+                _target = Slot.Entity.OrderedEnemyList[0];
+            }
 
             if (_target == null) return;
             //Rotate to point at target.
@@ -135,14 +147,18 @@ namespace Entity.Module
             //Fire charges that we have gained from loading a burst.
             if (_shotsRemainingInBurst > 0 && _intervalCooldown < 0f)
             {
-                //Fire charge.
-                var proj = Instantiate(shotPrefab, shotOriginTransformMarkers[^_shotsRemainingInBurst].transform);
-                proj.transform.parent = null;
-                if (!proj.TryGetComponent<IShot>(out var shot))
-                    throw new Exception("Fired prefab doesn't have shot component.");
-                //Provide info.
-                shot.Origin = Slot.Entity;
-                shot.Target = _target;
+                //Fire charge if target is in range, remove shot regardless.
+                if (Slot.Entity.IsInRange(_target, engagementRange))
+                {
+                    var proj = Instantiate(shotPrefab, shotOriginTransformMarkers[^_shotsRemainingInBurst].transform);
+                    proj.transform.parent = null;
+                    if (!proj.TryGetComponent<IShot>(out var shot))
+                        throw new Exception("Fired prefab doesn't have shot component.");
+                    //Provide info.
+                    shot.Origin = Slot.Entity;
+                    shot.Target = _target;
+                }
+
                 //Reset charge interval.
                 _intervalCooldown = burstInterval;
                 _shotsRemainingInBurst--;

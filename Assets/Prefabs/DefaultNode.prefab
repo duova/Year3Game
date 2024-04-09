@@ -32,7 +32,7 @@ Transform:
   m_Children:
   - {fileID: 5626627515502627692}
   m_Father: {fileID: 0}
-  m_RootOrder: 13
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!208 &5036658647247216330
 NavMeshObstacle:
@@ -62,7 +62,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86d2243ca0e3451d9845906a8d13f0ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currencyPerTurn: 20
+  currencyPerTurn: 40
 --- !u!1001 &5305084880915557511
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -150,7 +150,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 31b50c3ca84213c49aab38c6c0bbc92d, type: 2}
+      objectReference: {fileID: 2100000, guid: 1cb88bcd5fd39a444a8eaeb672b588be, type: 2}
     - target: {fileID: 919132149155446097, guid: e8176031f09702e48b6b90d35183112f,
         type: 3}
       propertyPath: m_Name

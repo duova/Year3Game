@@ -29,5 +29,7 @@ namespace Entity.Module
         public int weight;
 
         public abstract bool IsEngaged();
+        
+        public abstract float GetRange();
     }
 }

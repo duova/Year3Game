@@ -18,6 +18,20 @@ namespace Core
         [SerializeField]
         public HoverText garageHoverText;
 
+        [SerializeField]
+        private GameObject initialUnitPrefab;
+
+        [SerializeField]
+        private GameObject initialUnitModulePrefab;
+
+        [SerializeField]
+        private string initialUnitName;
+
+        public int GetSection()
+        {
+            return _currentSection;
+        }
+
         private void Awake()
         {
             Instance = this;
@@ -29,13 +43,19 @@ namespace Core
             {
                 section.SetActive(false);
             }
+            GarageManager.Instance.GoToGarage();
+            GarageManager.Instance.SelectEntity(initialUnitPrefab);
+            GarageManager.Instance.SelectModule(initialUnitModulePrefab);
+            GarageManager.Instance.LeaveGarage();
+            GarageManager.Instance.EntitySaves[0].Name = initialUnitName;
+            GarageManager.Instance.UpdateSlotMenu();
             ConditionalGoToSection(-1, 0);
         }
         
         public void ConditionalGoToSection(int previousRequiredSection, int section)
         {
             if (section >= sectionObjects.Length) return;
-            if (_currentSection != previousRequiredSection && _currentSection != -1) return;
+            if (_currentSection != previousRequiredSection) return;
             if (_currentSection >= 0)
             {
                 sectionObjects[_currentSection].SetActive(false);
@@ -47,6 +67,11 @@ namespace Core
             }
 
             _currentSection = section;
+        }
+
+        public void UnconditionalGoToSection(int section)
+        {
+            ConditionalGoToSection(_currentSection, section);
         }
 
         public void EndTutorial()

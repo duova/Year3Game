@@ -17,7 +17,7 @@ namespace Core
                 }
                 else
                 {
-                    actor.Controller = actor.AddComponent<AiController>();
+                    actor.Controller = actor.AddComponent<TutorialAiController>();
                 }
                 actor.Controller.Actor = actor;
             }

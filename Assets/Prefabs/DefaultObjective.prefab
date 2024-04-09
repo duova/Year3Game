@@ -94,6 +94,7 @@ GameObject:
   - component: {fileID: 4004447946616139666}
   - component: {fileID: 7122022722343201735}
   - component: {fileID: 3312117352484020092}
+  - component: {fileID: 4464414044963316527}
   m_Layer: 0
   m_Name: Display
   m_TagString: Untagged
@@ -166,6 +167,21 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4464414044963316527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198570697276824488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d75789012d304574bd549e7314821e05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blueMaterial: {fileID: 2100000, guid: fa69f72f41417854cab1c22d84581efd, type: 2}
+  orangeMaterial: {fileID: 2100000, guid: b16f64f428b405845a02e79478239092, type: 2}
+  renderersToSkip: []
 --- !u!1 &6108113473378303625
 GameObject:
   m_ObjectHideFlags: 0
@@ -245,8 +261,10 @@ MonoBehaviour:
   internalPowerRating: 0
   healthBar: {fileID: 2569277046649814669}
   moduleArrowPrefab: {fileID: 0}
-  damagePerSecond: 200
-  engagementRange: 8
+  deathVFXPrefab: {fileID: 1828176872806910, guid: 3071ec5ed5f981c4fa44c4ad0ba78a15,
+    type: 3}
+  damagePerSecond: 100
+  engagementRange: 80
 --- !u!120 &6246526858697847545
 LineRenderer:
   serializedVersion: 2
@@ -268,7 +286,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: d4c406b5d941319458ddccf4b6f76be3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -292,7 +310,7 @@ LineRenderer:
   m_Positions: []
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.2
+    widthMultiplier: 2
     widthCurve:
       serializedVersion: 2
       m_Curve:
